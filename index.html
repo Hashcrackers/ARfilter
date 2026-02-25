@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Blink Archer AR: Arcade Edition</title>
+    <title>BlinkArcher AR: Arcade Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;700;900&display=swap');
@@ -27,7 +27,7 @@
             position: absolute; 
             inset: 0;
             width: 100vw;
-            height: 100dvh; /* Dynamic viewport height for mobile browsers */
+            height: 100dvh; 
             display: flex; 
             justify-content: center; 
             align-items: center;
@@ -52,6 +52,47 @@
             background: rgba(0, 0, 0, 0.75);
             backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .ui-layer {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            color: white;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.9);
+        }
+
+        /* Updated HUD Layout for Notch/Safe Area Visibility */
+        .hud-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            width: 100%;
+            padding-top: max(1rem, env(safe-area-inset-top));
+            padding-left: max(1rem, env(safe-area-inset-left));
+            padding-right: max(1rem, env(safe-area-inset-right));
+        }
+
+        .timer-badge {
+            background: rgba(0,0,0,0.7);
+            padding: 0.6rem 1.2rem;
+            border-radius: 999px;
+            border: 2px solid #ef4444;
+            font-weight: 900;
+            font-size: 1.2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .stats-badge {
+            background: rgba(0,0,0,0.7);
+            padding: 0.8rem 1rem;
+            border-radius: 1.25rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         @keyframes pulse-red {
@@ -90,6 +131,19 @@
         .screen-fade { transition: opacity 0.4s ease, transform 0.4s ease; }
         .hidden-screen { opacity: 0; transform: scale(0.95); pointer-events: none !important; }
 
+        .modal {
+            pointer-events: auto;
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(25px);
+            padding: 2.5rem 2rem;
+            border-radius: 2.5rem;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+            max-width: 85%;
+            margin: auto;
+        }
+
         .combo-meter {
             position: absolute; top: 50%; right: 5%;
             transform: translateY(-50%);
@@ -103,11 +157,11 @@
     <video id="video" autoplay playsinline muted></video>
     <canvas id="overlay"></canvas>
     
-    <div class="ui-layer absolute inset-0 z-10 flex flex-col p-6 pointer-events-none">
+    <div class="ui-layer">
         <!-- START SCREEN -->
         <div id="start-screen" class="screen-fade flex flex-col items-center justify-center h-full pointer-events-auto">
             <div class="modal glass rounded-[2.5rem] p-8 w-full max-w-sm flex flex-col items-center border-t border-white/10">
-                <h1 class="font-arcade text-3xl font-black text-white italic mb-1 tracking-tighter">BLINK ARCHER</h1>
+                <h1 class="font-arcade text-3xl font-black text-white italic mb-1 tracking-tighter uppercase">BLINKARCHER</h1>
                 <p class="text-[9px] uppercase tracking-[0.4em] text-cyan-400 mb-8 font-bold">Arcade Protocol Ready</p>
 
                 <div class="w-full space-y-6 mb-8 text-white">
@@ -137,14 +191,14 @@
 
         <!-- HUD -->
         <div id="hud" class="hidden-screen flex flex-col justify-between h-full w-full screen-fade">
-            <div class="flex justify-between items-start pt-[env(safe-area-inset-top,0px)]">
-                <div class="stats-badge glass rounded-2xl p-4 min-w-[100px]">
+            <div class="hud-top">
+                <div class="stats-badge glass min-w-[100px]">
                     <div class="text-[9px] uppercase font-bold text-cyan-400 tracking-widest mb-1">SCORE</div>
-                    <div id="score-val" class="font-arcade text-3xl font-black tabular-nums transition-transform">0000</div>
+                    <div id="score-val" class="font-arcade text-3xl font-black tabular-nums">0000</div>
                     <div id="arrow-container" class="flex gap-1 mt-3 h-4"></div>
                 </div>
                 
-                <div id="timer-box" class="timer-badge glass rounded-full px-5 py-3 border-2 border-cyan-400 flex flex-col items-center">
+                <div id="timer-box" class="timer-badge border-2 border-cyan-400 flex flex-col items-center">
                     <span id="timer-val" class="font-arcade text-2xl font-black tabular-nums">10</span>
                 </div>
             </div>
@@ -226,13 +280,10 @@
 
     function mapVideoToScreen(coordX, coordY) {
         if (!video.videoWidth) return { x: coordX, y: coordY };
-
         const videoAspect = video.videoWidth / video.videoHeight;
         const screenAspect = window.innerWidth / window.innerHeight;
-
         let mappedX = coordX;
         let mappedY = coordY;
-
         if (videoAspect > screenAspect) {
             const visibleWidth = screenAspect / videoAspect;
             mappedX = (coordX - (1 - visibleWidth) / 2) / visibleWidth;
@@ -240,7 +291,6 @@
             const visibleHeight = videoAspect / screenAspect;
             mappedY = (coordY - (1 - visibleHeight) / 2) / visibleHeight;
         }
-
         return { x: mappedX, y: mappedY };
     }
 
@@ -252,9 +302,7 @@
     function toggleFullscreen() {
         const docEl = document.documentElement;
         const requestFS = docEl.requestFullscreen || docEl.webkitRequestFullScreen || docEl.mozRequestFullScreen || docEl.msRequestFullscreen;
-        if (requestFS) {
-            requestFS.call(docEl).catch(() => {});
-        }
+        if (requestFS) requestFS.call(docEl).catch(() => {});
     }
 
     function playSound(type) {
@@ -292,7 +340,6 @@
                 runningMode: "VIDEO",
                 numFaces: 1
             });
-
             const stream = await navigator.mediaDevices.getUserMedia({
                 video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
                 audio: false
@@ -327,10 +374,8 @@
         if (state.gameState !== 'PLAYING' || state.arrows <= 0) return;
         state.arrows--;
         playSound('shoot');
-
         const dx = Math.abs(crosshair.x - target.x);
         const dy = Math.abs(crosshair.y - target.y);
-
         if (dx < CONFIG.hitRadius && dy < CONFIG.hitRadius) {
             state.score += 10 * state.combo;
             state.combo++;
@@ -396,7 +441,6 @@
                 const mapped = mapVideoToScreen(noseRaw.x, noseRaw.y);
                 crosshair.x = mapped.x;
                 crosshair.y = mapped.y;
-
                 if (res.faceBlendshapes && res.faceBlendshapes.length > 0) {
                     const blinks = res.faceBlendshapes[0].categories;
                     const bL = blinks.find(c => c.categoryName === 'eyeBlinkLeft')?.score || 0;
@@ -417,7 +461,6 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         const w = canvas.width;
         const h = canvas.height;
-
         if (crosshair.active) {
             const cx = crosshair.x * w;
             const cy = crosshair.y * h;
@@ -433,24 +476,20 @@
             ctx.fillStyle = ctx.strokeStyle;
             ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI * 2); ctx.fill();
         }
-
         if (state.gameState === 'PLAYING' && target.active) {
             target.x += target.vx; target.y += target.vy;
             if (target.x < 0.1) { target.x = 0.1; target.vx *= -1; }
             if (target.x > 0.9) { target.x = 0.9; target.vx *= -1; }
             if (target.y < 0.2) { target.y = 0.2; target.vy *= -1; }
             if (target.y > 0.8) { target.y = 0.8; target.vy *= -1; }
-
             const tx = target.x * w;
             const ty = target.y * h;
-            
             ctx.fillStyle = "white";
             ctx.beginPath(); ctx.arc(tx, ty, 35, 0, Math.PI * 2); ctx.fill();
             ctx.fillStyle = CONFIG.colors.secondary;
             ctx.beginPath(); ctx.arc(tx, ty, 25, 0, Math.PI * 2); ctx.fill();
             ctx.fillStyle = "white";
             ctx.beginPath(); ctx.arc(tx, ty, 10, 0, Math.PI * 2); ctx.fill();
-
             for (let i = particles.length - 1; i >= 0; i--) {
                 const p = particles[i];
                 p.x += p.vx; p.y += p.vy; p.life -= 0.03;

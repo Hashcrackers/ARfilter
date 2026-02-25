@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>BlinkArcher AR: Arcade Edition</title>
+    <title>Blink Archer AR: Arcade Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;700;900&display=swap');
+        /* Changed font to Russo One for a bolder arcade feel */
+        @import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;700;900&display=swap');
 
         :root {
             --neon-primary: #00f2ff;
@@ -21,7 +22,7 @@
             font-family: 'Inter', sans-serif; touch-action: none;
         }
 
-        .font-arcade { font-family: 'Orbitron', sans-serif; }
+        .font-arcade { font-family: 'Russo One', sans-serif; }
 
         #container {
             position: absolute; 
@@ -66,7 +67,6 @@
             text-shadow: 0 2px 10px rgba(0,0,0,0.9);
         }
 
-        /* Updated HUD Layout for Notch/Safe Area Visibility */
         .hud-top {
             display: flex;
             justify-content: space-between;
@@ -138,7 +138,7 @@
             padding: 2.5rem 2rem;
             border-radius: 2.5rem;
             text-align: center;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
             max-width: 85%;
             margin: auto;
@@ -161,7 +161,7 @@
         <!-- START SCREEN -->
         <div id="start-screen" class="screen-fade flex flex-col items-center justify-center h-full pointer-events-auto">
             <div class="modal glass rounded-[2.5rem] p-8 w-full max-w-sm flex flex-col items-center border-t border-white/10">
-                <h1 class="font-arcade text-3xl font-black text-white italic mb-1 tracking-tighter uppercase">BLINKARCHER</h1>
+                <h1 class="font-arcade text-3xl font-black text-white italic mb-1 tracking-tight uppercase">BLINK ARCHER</h1>
                 <p class="text-[9px] uppercase tracking-[0.4em] text-cyan-400 mb-8 font-bold">Arcade Protocol Ready</p>
 
                 <div class="w-full space-y-6 mb-8 text-white">
@@ -203,7 +203,6 @@
                 </div>
             </div>
 
-            <!-- Feedback Bar -->
             <div class="absolute bottom-10 left-1/2 -translate-x-1/2 w-32 h-1 glass rounded-full overflow-hidden">
                 <div id="blink-fill" class="h-full bg-cyan-400 transition-all duration-75" style="width: 0%"></div>
             </div>
@@ -232,8 +231,8 @@
                 </div>
 
                 <div class="w-full space-y-3">
-                    <button id="restart-btn" class="btn-arcade w-full py-4 rounded-xl bg-white text-black font-black text-lg italic tracking-tighter">REPLAY</button>
-                    <button id="menu-btn" class="btn-arcade w-full py-3 rounded-xl glass text-white font-bold text-xs uppercase tracking-widest">SETTINGS</button>
+                    <button id="restart-btn" class="btn-arcade w-full py-4 rounded-xl bg-white text-black font-black text-lg italic tracking-tighter font-arcade">REPLAY</button>
+                    <button id="menu-btn" class="btn-arcade w-full py-3 rounded-xl glass text-white font-bold text-xs uppercase tracking-widest font-arcade">SETTINGS</button>
                 </div>
             </div>
         </div>

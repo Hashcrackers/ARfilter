@@ -24,16 +24,26 @@
         .font-arcade { font-family: 'Orbitron', sans-serif; }
 
         #container {
-            position: absolute; inset: 0;
-            display: flex; justify-content: center; align-items: center;
+            position: absolute; 
+            inset: 0;
+            width: 100vw;
+            height: 100dvh; /* Dynamic viewport height for mobile browsers */
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
             background: #000;
+            overflow: hidden;
         }
 
         video, canvas {
-            position: absolute; top: 0; left: 0;
-            width: 100%; height: 100%;
+            position: absolute; 
+            top: 0; 
+            left: 0;
+            width: 100% !important; 
+            height: 100% !important;
             transform: scaleX(-1);
-            object-fit: cover; z-index: 1;
+            object-fit: cover; 
+            z-index: 1;
         }
 
         #overlay { z-index: 2; pointer-events: none; }
@@ -181,7 +191,7 @@
 
     const CONFIG = {
         sensitivity: 0.45,
-        hitRadius: 0.1, // Increased hit radius for easier mobile gameplay
+        hitRadius: 0.1, 
         colors: {
             primary: '#00f2ff',
             secondary: '#ff00c8',
@@ -214,8 +224,6 @@
     let target = { x: 0.5, y: 0.5, vx: 0.005, vy: 0.003, active: false };
     let crosshair = { x: 0.5, y: 0.5, active: false };
 
-    // --- Coordinate Mapping Helpers ---
-    // Maps 0-1 video space to 0-1 screen space accounting for object-fit: cover
     function mapVideoToScreen(coordX, coordY) {
         if (!video.videoWidth) return { x: coordX, y: coordY };
 
@@ -226,11 +234,9 @@
         let mappedY = coordY;
 
         if (videoAspect > screenAspect) {
-            // Video is wider than screen - X is cropped
             const visibleWidth = screenAspect / videoAspect;
             mappedX = (coordX - (1 - visibleWidth) / 2) / visibleWidth;
         } else {
-            // Video is taller than screen - Y is cropped
             const visibleHeight = videoAspect / screenAspect;
             mappedY = (coordY - (1 - visibleHeight) / 2) / visibleHeight;
         }
@@ -241,6 +247,14 @@
     function initAudio() {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function toggleFullscreen() {
+        const docEl = document.documentElement;
+        const requestFS = docEl.requestFullscreen || docEl.webkitRequestFullScreen || docEl.mozRequestFullScreen || docEl.msRequestFullscreen;
+        if (requestFS) {
+            requestFS.call(docEl).catch(() => {});
+        }
     }
 
     function playSound(type) {
@@ -280,13 +294,17 @@
             });
 
             const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'user', width: 640, height: 480 },
+                video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
                 audio: false
             });
             video.srcObject = stream;
             video.onloadedmetadata = () => {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
+                const resize = () => {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                };
+                window.addEventListener('resize', resize);
+                resize();
                 document.getElementById('start-btn').innerText = "ENTER ARENA";
                 document.getElementById('start-btn').disabled = false;
                 requestAnimationFrame(loop);
@@ -338,7 +356,6 @@
     function triggerRipple(x, y) {
         const div = document.createElement('div');
         div.className = 'ripple';
-        // Mirror the UI position
         div.style.left = `${(1 - x) * 100}%`;
         div.style.top = `${y * 100}%`;
         div.style.width = '120px'; div.style.height = '120px';
@@ -376,8 +393,6 @@
             if (res.faceLandmarks && res.faceLandmarks.length > 0) {
                 crosshair.active = true;
                 const noseRaw = res.faceLandmarks[0][168];
-                
-                // Map tracking to visible screen area
                 const mapped = mapVideoToScreen(noseRaw.x, noseRaw.y);
                 crosshair.x = mapped.x;
                 crosshair.y = mapped.y;
@@ -450,6 +465,7 @@
 
     function startGame() {
         initAudio();
+        toggleFullscreen();
         state.gameState = 'PLAYING';
         state.score = 0;
         state.combo = 1;

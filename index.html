@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Blink Archer AR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            touch-action: none;
+            width: 100vw;
+            height: 100vh;
+        }
+        #container {
+            position: relative;
+            width: 100vw;
+            height: 100dvh; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        video, canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ensures video fills screen regardless of ratio */
+            z-index: 1;
+        }
+        /* Mirroring for natural selfie feel */
+        #video, #overlay {
+            transform: scaleX(-1);
+        }
+        #overlay {
+            z-index: 2;
+        }
+        .ui-layer {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            color: white;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+        }
+        .hud-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            width: 100%;
+            /* Respect safe area for HUD text */
+            padding-top: calc(1rem + env(safe-area-inset-top));
+            padding-left: calc(1.5rem + env(safe-area-inset-left));
+            padding-right: calc(1.5rem + env(safe-area-inset-right));
+        }
+        .timer-badge {
+            background: rgba(0,0,0,0.75);
+            padding: 0.6rem 1.2rem;
+            border-radius: 999px;
+            border: 2px solid #ef4444;
+            font-weight: 900;
+            font-size: 1.25rem;
+            backdrop-filter: blur(10px);
+        }
+        .stats-badge {
+            background: rgba(0,0,0,0.75);
+            padding: 0.8rem 1rem;
+            border-radius: 1.25rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .modal {
+            pointer-events: auto;
+            background: rgba(0,0,0,0.92);
+            backdrop-filter: blur(20px);
+            padding: 2.5rem 2rem;
+            border-radius: 2.5rem;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.15);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            max-width: 85%;
+            margin: auto; /* Center in parent */
+        }
+        .blink-indicator {
+            position: absolute;
+            /* Just below notch */
+            top: calc(8% + env(safe-area-inset-top));
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 0.4rem 1rem;
+            border-radius: 999px;
+            font-weight: 800;
+            font-size: 0.7rem;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(5px);
+        }
+        .blink-meter {
+            width: 50px;
+            height: 6px;
+            background: #222;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        #blink-fill {
+            width: 0%;
+            height: 100%;
+            background: #4ade80;
+            transition: width 0.05s ease-out;
+        }
+        /* Mobile interactive tweaks */
+        * {
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+
+<div id="container">
+    <video id="video" autoplay playsinline muted></video>
+    <canvas id="overlay"></canvas>
+    
+    <div class="blink-indicator">
+        <span class="tracking-widest uppercase text-[10px] opacity-70">Aim & Blink</span>
+        <div class="blink-meter"><div id="blink-fill"></div></div>
+    </div>
+
+    <div class="ui-layer">
+        <div id="hud" class="hud-top hidden">
+            <div class="stats-badge">
+                <div class="text-[10px] uppercase font-bold tracking-widest opacity-60">Shots</div>
+                <div id="arrow-container" class="flex gap-1.5 my-1.5 h-6 items-center"></div>
+                <div class="text-[10px] uppercase font-bold tracking-widest opacity-60 mt-1">Score</div>
+                <div id="score-val" class="text-3xl font-black text-yellow-400">0</div>
+            </div>
+            <div class="timer-badge">
+                <span id="timer-val">10</span>s
+            </div>
+        </div>
+
+        <div id="overlay-content" class="flex flex-grow flex-col items-center justify-center pointer-events-auto">
+            <div id="start-screen" class="modal">
+                <h1 class="text-4xl font-black mb-2 text-yellow-400 uppercase tracking-tighter leading-none">Blink<br>Archer AR</h1>
+                <p class="mb-8 opacity-80 text-sm leading-relaxed mt-4">
+                    Target the red orb and <span class="text-green-400 font-bold underline decoration-2">blink firmly</span> to shoot.<br>
+                    <span class="opacity-60 text-xs mt-2 block italic">Fullscreen requested on start</span>
+                </p>
+                <button id="start-btn" class="w-full bg-yellow-500 text-black py-4 rounded-2xl font-black text-xl shadow-lg shadow-yellow-500/20 active:scale-95 disabled:opacity-50 transition-all" disabled>
+                    LOADING ENGINE...
+                </button>
+            </div>
+
+            <div id="end-screen" class="modal hidden">
+                <h2 class="text-xl font-bold mb-1 opacity-70">GAME OVER</h2>
+                <div id="rank-badge" class="inline-block px-3 py-1 rounded-lg bg-yellow-500 text-black font-black text-xs mb-4 italic uppercase tracking-wider">ROOKIE</div>
+                <div class="text-7xl font-black mb-2 text-white tabular-nums" id="final-score">0</div>
+                <div class="text-sm opacity-60 mb-8">
+                    Personal Best: <span id="best-score" class="font-bold text-white">0</span>
+                </div>
+                <button id="restart-btn" class="w-full bg-white text-black py-4 rounded-2xl font-black text-xl shadow-lg active:scale-95 transition-all">
+                    TRY AGAIN
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { FaceLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3";
+
+    // --- Config ---
+    const GAME_DURATION = 10;
+    const MAX_ARROWS = 5;
+    const BLINK_SENSITIVITY = 0.48; 
+
+    // --- State ---
+    let gameState = 'START'; 
+    let score = 0;
+    let arrowsLeft = MAX_ARROWS;
+    let timeLeft = GAME_DURATION;
+    let bestScore = parseInt(localStorage.getItem('blinkArcherBest')) || 0;
+    let timerInterval = null;
+
+    let faceLandmarker;
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('overlay');
+    const ctx = canvas.getContext('2d');
+    const startBtn = document.getElementById('start-btn');
+    const blinkFill = document.getElementById('blink-fill');
+    
+    let lastVideoTime = -1;
+    let audioCtx = null;
+    let target = { x: 0.5, y: 0.5, vx: 0.005, vy: 0.003 };
+    let crosshair = { x: 0.5, y: 0.5, active: false };
+    let particles = [];
+    let hasFiredInCurrentBlink = false;
+
+    // --- Audio & Haptics ---
+    function initAudio() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playSound(type) {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        const now = audioCtx.currentTime;
+
+        if (type === 'shoot') {
+            osc.frequency.setValueAtTime(450, now);
+            osc.frequency.exponentialRampToValueAtTime(80, now + 0.1);
+            gain.gain.setValueAtTime(0.08, now); gain.gain.linearRampToValueAtTime(0, now + 0.1);
+            osc.start(); osc.stop(now + 0.1);
+        } else if (type === 'hit') {
+            osc.frequency.setValueAtTime(600, now);
+            osc.frequency.exponentialRampToValueAtTime(1200, now + 0.15);
+            gain.gain.setValueAtTime(0.12, now); gain.gain.linearRampToValueAtTime(0, now + 0.2);
+            osc.start(); osc.stop(now + 0.2);
+            if (navigator.vibrate) navigator.vibrate(80);
+        } else if (type === 'miss') {
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(140, now);
+            gain.gain.setValueAtTime(0.06, now); gain.gain.linearRampToValueAtTime(0, now + 0.3);
+            osc.start(); osc.stop(now + 0.3);
+            if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
+        }
+    }
+
+    // --- MediaPipe Init ---
+    async function initAR() {
+        try {
+            const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm");
+            faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
+                baseOptions: {
+                    modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
+                    delegate: "GPU"
+                },
+                outputFaceBlendshapes: true,
+                runningMode: "VIDEO",
+                numFaces: 1
+            });
+
+            const constraints = {
+                video: { 
+                    facingMode: 'user', 
+                    width: { ideal: 1280 }, 
+                    height: { ideal: 720 },
+                    frameRate: { ideal: 30 }
+                },
+                audio: false
+            };
+            
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            video.srcObject = stream;
+            
+            video.onloadedmetadata = () => {
+                const resize = () => {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                };
+                window.addEventListener('resize', resize);
+                resize();
+                
+                startBtn.innerText = "START HUNTING";
+                startBtn.disabled = false;
+                requestAnimationFrame(gameLoop);
+            };
+        } catch (err) {
+            console.error(err);
+            startBtn.innerText = "ERROR: CHECK CAMERA";
+        }
+    }
+
+    // --- Fullscreen Trigger ---
+    function toggleFullscreen() {
+        const doc = window.document;
+        const docEl = doc.documentElement;
+
+        const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+
+        if (requestFullScreen) {
+            requestFullScreen.call(docEl).catch(err => {
+                console.log("Fullscreen request failed", err);
+            });
+        }
+    }
+
+    // --- Gameplay ---
+    function updateHUD() {
+        document.getElementById('score-val').innerText = score;
+        document.getElementById('timer-val').innerText = Math.ceil(timeLeft);
+        const container = document.getElementById('arrow-container');
+        container.innerHTML = '';
+        for(let i=0; i < MAX_ARROWS; i++) {
+            container.innerHTML += `<div class="w-2.5 h-6 rounded-sm border border-white/20 ${i < arrowsLeft ? 'bg-yellow-400 shadow-[0_0_12px_#facc15]' : 'bg-white/5'}"></div>`;
+        }
+    }
+
+    function fire() {
+        if (gameState !== 'PLAYING' || arrowsLeft <= 0) return;
+        
+        arrowsLeft--;
+        playSound('shoot');
+        
+        const dx = Math.abs(crosshair.x - target.x);
+        const dy = Math.abs(crosshair.y - target.y);
+        
+        if (dx < 0.1 && dy < 0.1) {
+            score += 10;
+            playSound('hit');
+            createParticles(target.x, target.y, '#facc15');
+            spawnTarget();
+        } else {
+            playSound('miss');
+        }
+        
+        updateHUD();
+        if (arrowsLeft === 0) setTimeout(gameOver, 800);
+    }
+
+    function spawnTarget() {
+        target.x = 0.25 + Math.random() * 0.5;
+        target.y = 0.3 + Math.random() * 0.4;
+        const diff = 1 + (score * 0.04);
+        target.vx = (Math.random() - 0.5) * 0.012 * diff;
+        target.vy = (Math.random() - 0.5) * 0.012 * diff;
+    }
+
+    function createParticles(x, y, color) {
+        for (let i = 0; i < 20; i++) {
+            particles.push({
+                x, y,
+                vx: (Math.random() - 0.5) * 0.06,
+                vy: (Math.random() - 0.5) * 0.06,
+                life: 1.0,
+                color
+            });
+        }
+    }
+
+    function gameOver() {
+        if (gameState === 'END') return;
+        gameState = 'END';
+        clearInterval(timerInterval);
+        if (score > bestScore) {
+            bestScore = score;
+            localStorage.setItem('blinkArcherBest', bestScore);
+        }
+        document.getElementById('hud').classList.add('hidden');
+        document.getElementById('end-screen').classList.remove('hidden');
+        document.getElementById('final-score').innerText = score;
+        document.getElementById('best-score').innerText = bestScore;
+        
+        let rank = "ROOKIE";
+        if (score >= 20) rank = "BEGINNER";
+        if (score >= 40) rank = "PRO";
+        if (score >= 60) rank = "ELITE";
+        document.getElementById('rank-badge').innerText = rank;
+    }
+
+    function startGame() {
+        initAudio();
+        toggleFullscreen();
+        gameState = 'PLAYING';
+        score = 0;
+        arrowsLeft = MAX_ARROWS;
+        timeLeft = GAME_DURATION;
+        spawnTarget();
+        updateHUD();
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('end-screen').classList.add('hidden');
+        document.getElementById('hud').classList.remove('hidden');
+
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            updateHUD();
+            if (timeLeft <= 0) gameOver();
+        }, 1000);
+    }
+
+    // --- Main Game Loop ---
+    function gameLoop() {
+        if (video.currentTime !== lastVideoTime && faceLandmarker) {
+            lastVideoTime = video.currentTime;
+            const result = faceLandmarker.detectForVideo(video, performance.now());
+            
+            if (result.faceLandmarks && result.faceLandmarks.length > 0) {
+                crosshair.active = true;
+                const landmarks = result.faceLandmarks[0];
+                const bridge = landmarks[168]; 
+                crosshair.x = bridge.x;
+                crosshair.y = bridge.y;
+
+                if (result.faceBlendshapes && result.faceBlendshapes.length > 0) {
+                    const categories = result.faceBlendshapes[0].categories;
+                    const leftBlink = categories.find(c => c.categoryName === "eyeBlinkLeft")?.score || 0;
+                    const rightBlink = categories.find(c => c.categoryName === "eyeBlinkRight")?.score || 0;
+                    const avgBlink = (leftBlink + rightBlink) / 2;
+
+                    blinkFill.style.width = (avgBlink * 100) + "%";
+                    blinkFill.style.backgroundColor = avgBlink > BLINK_SENSITIVITY ? "#ef4444" : "#4ade80";
+
+                    if (avgBlink > BLINK_SENSITIVITY) {
+                        if (!hasFiredInCurrentBlink) {
+                            fire();
+                            hasFiredInCurrentBlink = true;
+                        }
+                    } else {
+                        hasFiredInCurrentBlink = false;
+                    }
+                }
+            } else {
+                crosshair.active = false;
+                blinkFill.style.width = "0%";
+            }
+        }
+
+        renderCanvas();
+        requestAnimationFrame(gameLoop);
+    }
+
+    function renderCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        if (crosshair.active) {
+            const cx = crosshair.x * canvas.width;
+            const cy = crosshair.y * canvas.height;
+            ctx.strokeStyle = hasFiredInCurrentBlink ? "#ef4444" : "#4ade80";
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 32, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(cx - 45, cy); ctx.lineTo(cx - 15, cy);
+            ctx.moveTo(cx + 45, cy); ctx.lineTo(cx + 15, cy);
+            ctx.moveTo(cx, cy - 45); ctx.lineTo(cx, cy - 15);
+            ctx.moveTo(cx, cy + 45); ctx.lineTo(cx, cy + 15);
+            ctx.stroke();
+            
+            ctx.fillStyle = hasFiredInCurrentBlink ? "#ef4444" : "#4ade80";
+            ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI * 2); ctx.fill();
+        }
+
+        if (gameState === 'PLAYING') {
+            target.x += target.vx; target.y += target.vy;
+            if (target.x < 0.1 || target.x > 0.9) target.vx *= -1;
+            if (target.y < 0.2 || target.y > 0.8) target.vy *= -1;
+
+            const tx = target.x * canvas.width;
+            const ty = target.y * canvas.height;
+            
+            ctx.shadowBlur = 30; ctx.shadowColor = "rgba(255,0,0,0.8)";
+            ctx.fillStyle = "white";
+            ctx.beginPath(); ctx.arc(tx, ty, 38, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = "#ef4444";
+            ctx.beginPath(); ctx.arc(tx, ty, 28, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = "white";
+            ctx.beginPath(); ctx.arc(tx, ty, 10, 0, Math.PI * 2); ctx.fill();
+            ctx.shadowBlur = 0;
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx; p.y += p.vy; p.life -= 0.025;
+                if (p.life <= 0) { particles.splice(i, 1); continue; }
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life;
+                ctx.fillRect(p.x * canvas.width, p.y * canvas.height, 7, 7);
+            }
+            ctx.globalAlpha = 1.0;
+        }
+    }
+
+    // --- Init ---
+    window.addEventListener('load', initAR);
+    startBtn.onclick = startGame;
+    document.getElementById('restart-btn').onclick = startGame;
+
+</script>
+</body>
+</html>

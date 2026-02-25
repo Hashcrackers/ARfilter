@@ -156,7 +156,7 @@
             pointer-events: auto;
             background: rgba(0,0,0,0.85);
             backdrop-filter: blur(25px);
-            padding: 2.5rem 1.5rem;
+            padding: 2rem 1.5rem;
             border-radius: 2.5rem;
             text-align: center;
             border: 1px solid rgba(255, 255, 255, 0.15);
@@ -168,7 +168,7 @@
 
         .combo-meter {
             position: absolute; 
-            top: 60%; /* Lowered to avoid timer/HUD conflict */
+            top: 60%; 
             right: 5%;
             transform: translateY(-50%);
             display: flex; 
@@ -191,26 +191,34 @@
                 <h1 class="font-arcade text-3xl font-black text-white italic mb-1 tracking-tight uppercase">BLINK ARCHER</h1>
                 <p class="text-[9px] uppercase tracking-[0.4em] text-cyan-400 mb-8 font-bold">Arcade Protocol Ready</p>
 
-                <div class="w-full space-y-6 mb-8 text-white">
+                <div class="w-full space-y-4 mb-6 text-white">
                     <div>
-                        <label class="text-[9px] uppercase font-bold text-white/40 mb-3 block text-center tracking-widest">Duration</label>
+                        <label class="text-[9px] uppercase font-bold text-white/40 mb-2 block text-center tracking-widest">Duration</label>
                         <div class="flex justify-between gap-2" id="time-selector">
-                            <div class="selector-item glass flex-1 py-2 rounded-xl text-center font-arcade text-xs active" data-val="10">10s</div>
-                            <div class="selector-item glass flex-1 py-2 rounded-xl text-center font-arcade text-xs" data-val="20">20s</div>
-                            <div class="selector-item glass flex-1 py-2 rounded-xl text-center font-arcade text-xs" data-val="30">30s</div>
+                            <div class="selector-item glass flex-1 py-1.5 rounded-xl text-center font-arcade text-xs active" data-val="10">10s</div>
+                            <div class="selector-item glass flex-1 py-1.5 rounded-xl text-center font-arcade text-xs" data-val="20">20s</div>
+                            <div class="selector-item glass flex-1 py-1.5 rounded-xl text-center font-arcade text-xs" data-val="30">30s</div>
                         </div>
                     </div>
                     <div>
-                        <label class="text-[9px] uppercase font-bold text-white/40 mb-3 block text-center tracking-widest">Arrows</label>
+                        <label class="text-[9px] uppercase font-bold text-white/40 mb-2 block text-center tracking-widest">Arrows</label>
                         <div class="flex justify-between gap-2" id="arrow-selector">
-                            <div class="selector-item glass flex-1 py-2 rounded-xl text-center font-arcade text-xs" data-val="3">03</div>
-                            <div class="selector-item glass flex-1 py-2 rounded-xl text-center font-arcade text-xs active" data-val="5">05</div>
-                            <div class="selector-item glass flex-1 py-2 rounded-xl text-center font-arcade text-xs" data-val="10">10</div>
+                            <div class="selector-item glass flex-1 py-1.5 rounded-xl text-center font-arcade text-xs" data-val="3">03</div>
+                            <div class="selector-item glass flex-1 py-1.5 rounded-xl text-center font-arcade text-xs active" data-val="5">05</div>
+                            <div class="selector-item glass flex-1 py-1.5 rounded-xl text-center font-arcade text-xs" data-val="10">10</div>
+                        </div>
+                    </div>
+                    <!-- TARGET SKIN SELECTOR -->
+                    <div>
+                        <label class="text-[9px] uppercase font-bold text-white/40 mb-2 block text-center tracking-widest">Target Skin</label>
+                        <div class="flex justify-between gap-2" id="skin-selector">
+                            <div class="selector-item glass flex-1 py-1.5 rounded-xl text-center font-arcade text-xs active" data-val="target">TARGET</div>
+                            <div class="selector-item glass flex-1 py-1.5 rounded-xl text-center font-arcade text-xs" data-val="bird">BIRD</div>
                         </div>
                     </div>
                 </div>
 
-                <button id="start-btn" class="btn-arcade w-full py-5 rounded-2xl bg-cyan-400 text-black font-black text-xl italic tracking-tighter shadow-[0_0_30px_rgba(34,211,238,0.3)] disabled:opacity-20 font-arcade" disabled>
+                <button id="start-btn" class="btn-arcade w-full py-4 rounded-2xl bg-cyan-400 text-black font-black text-xl italic tracking-tighter shadow-[0_0_30px_rgba(34,211,238,0.3)] disabled:opacity-20 font-arcade" disabled>
                     ENTER ARENA
                 </button>
             </div>
@@ -290,6 +298,7 @@
         arrows: 5,
         time: 10,
         combo: 1,
+        targetType: 'target', 
         totalGames: parseInt(localStorage.getItem('ba_totalGames')) || 0,
         allTimeScore: parseInt(localStorage.getItem('ba_allTimeScore')) || 0,
         bestScore: parseInt(localStorage.getItem('ba_bestScore')) || 0,
@@ -343,6 +352,7 @@
         const osc = audioCtx.createOscillator();
         const g = audioCtx.createGain();
         osc.connect(g); g.connect(audioCtx.destination);
+        
         if (type === 'shoot') {
             osc.frequency.setValueAtTime(400, now); osc.frequency.exponentialRampToValueAtTime(50, now + 0.1);
             g.gain.setValueAtTime(0.1, now); g.gain.linearRampToValueAtTime(0, now + 0.1);
@@ -352,6 +362,15 @@
             g.gain.setValueAtTime(0.15, now); g.gain.linearRampToValueAtTime(0, now + 0.2);
             osc.start(); osc.stop(now + 0.2);
             if (navigator.vibrate) navigator.vibrate(50);
+        } else if (type === 'bird_hit') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1000, now);
+            osc.frequency.exponentialRampToValueAtTime(2500, now + 0.05);
+            osc.frequency.exponentialRampToValueAtTime(1500, now + 0.1);
+            g.gain.setValueAtTime(0.1, now);
+            g.gain.linearRampToValueAtTime(0, now + 0.12);
+            osc.start(); osc.stop(now + 0.12);
+            if (navigator.vibrate) navigator.vibrate(40);
         } else if (type === 'miss') {
             osc.type = 'sawtooth'; osc.frequency.setValueAtTime(120, now);
             g.gain.setValueAtTime(0.05, now); g.gain.linearRampToValueAtTime(0, now + 0.3);
@@ -411,7 +430,11 @@
         if (dx < CONFIG.hitRadius && dy < CONFIG.hitRadius) {
             state.score += 10 * state.combo;
             state.combo++;
-            playSound('hit');
+            if (state.targetType === 'bird') {
+                playSound('bird_hit');
+            } else {
+                playSound('hit');
+            }
             triggerRipple(target.x, target.y);
             createParticles(target.x, target.y, CONFIG.colors.success);
             spawnTarget();
@@ -516,12 +539,46 @@
             if (target.y > 0.8) { target.y = 0.8; target.vy *= -1; }
             const tx = target.x * w;
             const ty = target.y * h;
-            ctx.fillStyle = "white";
-            ctx.beginPath(); ctx.arc(tx, ty, 35, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = CONFIG.colors.secondary;
-            ctx.beginPath(); ctx.arc(tx, ty, 25, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = "white";
-            ctx.beginPath(); ctx.arc(tx, ty, 10, 0, Math.PI * 2); ctx.fill();
+
+            if (state.targetType === 'target') {
+                ctx.fillStyle = "white";
+                ctx.beginPath(); ctx.arc(tx, ty, 35, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = CONFIG.colors.secondary;
+                ctx.beginPath(); ctx.arc(tx, ty, 25, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = "white";
+                ctx.beginPath(); ctx.arc(tx, ty, 10, 0, Math.PI * 2); ctx.fill();
+            } else {
+                // FLAPPING BIRD ANIMATION
+                const flapPhase = (Date.now() / 150) % (Math.PI * 2);
+                const wingYScale = Math.sin(flapPhase);
+                
+                // Body
+                ctx.fillStyle = "#FFD700";
+                ctx.beginPath(); ctx.ellipse(tx, ty, 30, 20, 0, 0, Math.PI * 2); ctx.fill();
+                
+                // Animated Wing (Flapping)
+                ctx.fillStyle = "#FFA500";
+                ctx.beginPath(); 
+                // We use scale logic on radiusY and a small Y offset to simulate flapping
+                ctx.ellipse(tx - 5, ty + (wingYScale * 5), 18, Math.max(2, 12 * Math.abs(wingYScale)), 0, 0, Math.PI * 2); 
+                ctx.fill();
+                
+                // Head
+                ctx.fillStyle = "#FF8C00";
+                ctx.beginPath(); ctx.arc(tx + 20, ty - 10, 15, 0, Math.PI * 2); ctx.fill();
+                
+                // Eye
+                ctx.fillStyle = "white";
+                ctx.beginPath(); ctx.arc(tx + 25, ty - 15, 4, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = "black";
+                ctx.beginPath(); ctx.arc(tx + 26, ty - 15, 1.5, 0, Math.PI * 2); ctx.fill();
+                
+                // Beak
+                ctx.fillStyle = "red";
+                ctx.beginPath();
+                ctx.moveTo(tx + 35, ty - 10); ctx.lineTo(tx + 45, ty - 5); ctx.lineTo(tx + 35, ty); ctx.fill();
+            }
+
             for (let i = particles.length - 1; i >= 0; i--) {
                 const p = particles[i];
                 p.x += p.vx; p.y += p.vy; p.life -= 0.03;
@@ -542,6 +599,7 @@
         state.combo = 1;
         state.time = parseInt(document.querySelector('#time-selector .active').dataset.val);
         state.arrows = parseInt(document.querySelector('#arrow-selector .active').dataset.val);
+        state.targetType = document.querySelector('#skin-selector .active').dataset.val;
         spawnTarget();
         updateHUD();
         document.getElementById('start-screen').classList.add('hidden-screen');

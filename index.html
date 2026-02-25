@@ -6,7 +6,7 @@
     <title>Blink Archer AR: Arcade Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Changed font to Russo One for a bolder arcade feel */
+        /* Russo One font for that high-impact arcade feel */
         @import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;700;900&display=swap');
 
         :root {
@@ -50,8 +50,8 @@
         #overlay { z-index: 2; pointer-events: none; }
 
         .glass {
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(15px);
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
@@ -60,11 +60,21 @@
             inset: 0;
             pointer-events: none;
             z-index: 10;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
             color: white;
             text-shadow: 0 2px 10px rgba(0,0,0,0.9);
+        }
+
+        /* Centered containers that don't block tracking clicks */
+        .screen-container {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Let tracking pass through the gaps */
         }
 
         .hud-top {
@@ -72,9 +82,10 @@
             justify-content: space-between;
             align-items: flex-start;
             width: 100%;
-            padding-top: max(1rem, env(safe-area-inset-top));
+            padding-top: max(1.2rem, env(safe-area-inset-top));
             padding-left: max(1rem, env(safe-area-inset-left));
             padding-right: max(1rem, env(safe-area-inset-right));
+            pointer-events: none;
         }
 
         .timer-badge {
@@ -113,7 +124,8 @@
 
         .btn-arcade {
             transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            pointer-events: auto;
+            pointer-events: auto; /* Force buttons to be clickable */
+            cursor: pointer;
         }
         .btn-arcade:active { transform: scale(0.95); }
 
@@ -129,18 +141,19 @@
         }
 
         .screen-fade { transition: opacity 0.4s ease, transform 0.4s ease; }
-        .hidden-screen { opacity: 0; transform: scale(0.95); pointer-events: none !important; }
+        .hidden-screen { opacity: 0; transform: scale(0.95); pointer-events: none !important; visibility: hidden; }
 
         .modal {
-            pointer-events: auto;
-            background: rgba(0,0,0,0.9);
+            pointer-events: auto; /* Ensure the modal area is clickable */
+            background: rgba(0,0,0,0.85);
             backdrop-filter: blur(25px);
-            padding: 2.5rem 2rem;
+            padding: 2.5rem 1.5rem;
             border-radius: 2.5rem;
             text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
-            max-width: 85%;
+            max-width: 90%;
+            width: 320px;
             margin: auto;
         }
 
@@ -148,6 +161,7 @@
             position: absolute; top: 50%; right: 5%;
             transform: translateY(-50%);
             display: flex; flex-direction: column; align-items: center;
+            pointer-events: none;
         }
     </style>
 </head>
@@ -159,8 +173,8 @@
     
     <div class="ui-layer">
         <!-- START SCREEN -->
-        <div id="start-screen" class="screen-fade flex flex-col items-center justify-center h-full pointer-events-auto">
-            <div class="modal glass rounded-[2.5rem] p-8 w-full max-w-sm flex flex-col items-center border-t border-white/10">
+        <div id="start-screen" class="screen-container screen-fade">
+            <div class="modal glass flex flex-col items-center">
                 <h1 class="font-arcade text-3xl font-black text-white italic mb-1 tracking-tight uppercase">BLINK ARCHER</h1>
                 <p class="text-[9px] uppercase tracking-[0.4em] text-cyan-400 mb-8 font-bold">Arcade Protocol Ready</p>
 
@@ -183,14 +197,14 @@
                     </div>
                 </div>
 
-                <button id="start-btn" class="btn-arcade w-full py-5 rounded-2xl bg-cyan-400 text-black font-black text-xl italic tracking-tighter shadow-[0_0_30px_rgba(34,211,238,0.3)] disabled:opacity-20" disabled>
-                    LOADING AI...
+                <button id="start-btn" class="btn-arcade w-full py-5 rounded-2xl bg-cyan-400 text-black font-black text-xl italic tracking-tighter shadow-[0_0_30px_rgba(34,211,238,0.3)] disabled:opacity-20 font-arcade" disabled>
+                    ENTER ARENA
                 </button>
             </div>
         </div>
 
         <!-- HUD -->
-        <div id="hud" class="hidden-screen flex flex-col justify-between h-full w-full screen-fade">
+        <div id="hud" class="screen-container hidden-screen screen-fade">
             <div class="hud-top">
                 <div class="stats-badge glass min-w-[100px]">
                     <div class="text-[9px] uppercase font-bold text-cyan-400 tracking-widest mb-1">SCORE</div>
@@ -214,25 +228,29 @@
         </div>
 
         <!-- RESULTS SCREEN -->
-        <div id="end-screen" class="hidden-screen screen-fade flex flex-col items-center justify-center h-full pointer-events-auto">
-            <div class="modal glass rounded-[2.5rem] p-10 w-full max-w-sm flex flex-col items-center">
+        <div id="end-screen" class="screen-container hidden-screen screen-fade">
+            <div class="modal glass flex flex-col items-center">
                 <div id="rank-badge" class="px-4 py-1 rounded bg-pink-500 text-black font-black text-[9px] tracking-widest uppercase mb-4 text-white">RECRUIT</div>
-                <div id="final-score" class="font-arcade text-7xl font-black text-white italic mb-8">000</div>
+                <div id="final-score" class="font-arcade text-7xl font-black text-white italic mb-6">000</div>
                 
-                <div class="w-full grid grid-cols-2 gap-3 mb-8">
-                    <div class="glass rounded-2xl p-4 text-center">
+                <div class="w-full grid grid-cols-2 gap-3 mb-6">
+                    <div class="glass rounded-2xl p-3 text-center">
                         <div class="text-[8px] opacity-40 font-bold uppercase tracking-widest text-white">BEST</div>
                         <div id="best-score" class="font-arcade text-lg text-cyan-400">0</div>
                     </div>
-                    <div class="glass rounded-2xl p-4 text-center">
+                    <div class="glass rounded-2xl p-3 text-center">
                         <div class="text-[8px] opacity-40 font-bold uppercase tracking-widest text-white">AVG.</div>
                         <div id="avg-score" class="font-arcade text-lg text-pink-500">0</div>
                     </div>
                 </div>
 
-                <div class="w-full space-y-3">
-                    <button id="restart-btn" class="btn-arcade w-full py-4 rounded-xl bg-white text-black font-black text-lg italic tracking-tighter font-arcade">REPLAY</button>
-                    <button id="menu-btn" class="btn-arcade w-full py-3 rounded-xl glass text-white font-bold text-xs uppercase tracking-widest font-arcade">SETTINGS</button>
+                <div class="flex flex-col items-center w-full space-y-3">
+                    <button id="restart-btn" class="btn-arcade w-full py-4 rounded-xl bg-cyan-400 text-black font-black text-lg italic tracking-tighter font-arcade shadow-[0_0_20px_rgba(34,211,238,0.3)]">
+                        REPLAY
+                    </button>
+                    <button id="menu-btn" class="btn-arcade w-full py-3 rounded-xl border border-white/20 text-white font-bold text-xs uppercase tracking-widest font-arcade bg-white/5">
+                        SETTINGS
+                    </button>
                 </div>
             </div>
         </div>
@@ -301,7 +319,9 @@
     function toggleFullscreen() {
         const docEl = document.documentElement;
         const requestFS = docEl.requestFullscreen || docEl.webkitRequestFullScreen || docEl.mozRequestFullScreen || docEl.msRequestFullscreen;
-        if (requestFS) requestFS.call(docEl).catch(() => {});
+        if (requestFS) {
+            requestFS.call(docEl).catch(() => {});
+        }
     }
 
     function playSound(type) {

@@ -3,139 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Blink Archer AR</title>
+    <title>Blink Archer AR: Arcade Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Force root to fill everything */
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #000;
-            overflow: hidden;
-            position: fixed; /* Prevents scrolling and elastic bouncing */
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            touch-action: none;
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;700;900&display=swap');
+
+        :root {
+            --neon-primary: #00f2ff;
+            --neon-secondary: #7000ff;
+            --neon-accent: #ff00c8;
+            --neon-success: #39ff14;
         }
 
+        html, body {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #000; overflow: hidden; position: fixed;
+            font-family: 'Inter', sans-serif; touch-action: none;
+        }
+
+        .font-arcade { font-family: 'Orbitron', sans-serif; }
+
         #container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            position: absolute; inset: 0;
+            display: flex; justify-content: center; align-items: center;
+            background: #000;
         }
 
         video, canvas {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            min-width: 100%;
-            min-height: 100%;
-            width: auto;
-            height: auto;
-            transform: translate(-50%, -50%) scaleX(-1); /* Centers and mirrors */
-            object-fit: cover;
-            z-index: 1;
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            transform: scaleX(-1);
+            object-fit: cover; z-index: 1;
         }
 
-        #overlay {
-            z-index: 2;
+        #overlay { z-index: 2; pointer-events: none; }
+
+        .glass {
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .ui-layer {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            z-index: 10;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            color: white;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.9);
+        @keyframes pulse-red {
+            0%, 100% { border-color: #ef4444; box-shadow: 0 0 5px #ef4444; }
+            50% { border-color: #ff0000; box-shadow: 0 0 20px #ff0000; }
+        }
+        .animate-pulse-critical { animation: pulse-red 0.5s infinite; }
+
+        @keyframes ripple {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+        .ripple {
+            position: absolute; border: 2px solid white; border-radius: 50%;
+            pointer-events: none; animation: ripple 0.6s ease-out forwards;
+            z-index: 15;
         }
 
-        .hud-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            width: 100%;
-            /* Only pad the content to avoid the notch, background stays full screen */
-            padding-top: calc(1rem + env(safe-area-inset-top));
-            padding-left: calc(1.5rem + env(safe-area-inset-left));
-            padding-right: calc(1.5rem + env(safe-area-inset-right));
-        }
-
-        .timer-badge {
-            background: rgba(0,0,0,0.7);
-            padding: 0.6rem 1.2rem;
-            border-radius: 999px;
-            border: 2px solid #ef4444;
-            font-weight: 900;
-            font-size: 1.2rem;
-            backdrop-filter: blur(10px);
-        }
-
-        .stats-badge {
-            background: rgba(0,0,0,0.7);
-            padding: 0.8rem 1rem;
-            border-radius: 1.25rem;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .modal {
+        .btn-arcade {
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             pointer-events: auto;
-            background: rgba(0,0,0,0.9);
-            backdrop-filter: blur(25px);
-            padding: 3rem 2rem;
-            border-radius: 2.5rem;
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
-            max-width: 85%;
-            margin: auto;
+        }
+        .btn-arcade:active { transform: scale(0.95); }
+
+        .selector-item {
+            transition: all 0.2s ease;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+        .selector-item.active {
+            background: var(--neon-primary);
+            color: black;
+            box-shadow: 0 0 15px var(--neon-primary);
         }
 
-        .blink-indicator {
-            position: absolute;
-            top: calc(12% + env(safe-area-inset-top));
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 0.4rem 1rem;
-            border-radius: 999px;
-            font-weight: 800;
-            font-size: 0.7rem;
-            z-index: 20;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            backdrop-filter: blur(5px);
-        }
+        .screen-fade { transition: opacity 0.4s ease, transform 0.4s ease; }
+        .hidden-screen { opacity: 0; transform: scale(0.95); pointer-events: none !important; }
 
-        .blink-meter {
-            width: 50px;
-            height: 6px;
-            background: #222;
-            border-radius: 3px;
-            overflow: hidden;
-        }
-
-        #blink-fill {
-            width: 0%;
-            height: 100%;
-            background: #4ade80;
-            transition: width 0.05s ease-out;
-        }
-
-        button {
-            -webkit-tap-highlight-color: transparent;
+        .combo-meter {
+            position: absolute; top: 50%; right: 5%;
+            transform: translateY(-50%);
+            display: flex; flex-direction: column; align-items: center;
         }
     </style>
 </head>
@@ -145,46 +93,84 @@
     <video id="video" autoplay playsinline muted></video>
     <canvas id="overlay"></canvas>
     
-    <div class="blink-indicator">
-        <span class="tracking-widest uppercase text-[10px] opacity-70">Focus & Blink</span>
-        <div class="blink-meter"><div id="blink-fill"></div></div>
-    </div>
+    <div class="ui-layer absolute inset-0 z-10 flex flex-col p-6 pointer-events-none">
+        <!-- START SCREEN -->
+        <div id="start-screen" class="screen-fade flex flex-col items-center justify-center h-full pointer-events-auto">
+            <div class="modal glass rounded-[2.5rem] p-8 w-full max-w-sm flex flex-col items-center border-t border-white/10">
+                <h1 class="font-arcade text-3xl font-black text-white italic mb-1 tracking-tighter">BLINK ARCHER</h1>
+                <p class="text-[9px] uppercase tracking-[0.4em] text-cyan-400 mb-8 font-bold">Arcade Protocol Ready</p>
 
-    <div class="ui-layer">
-        <div id="hud" class="hud-top hidden">
-            <div class="stats-badge">
-                <div class="text-[10px] uppercase font-bold tracking-widest opacity-60">Arrows</div>
-                <div id="arrow-container" class="flex gap-1.5 my-1.5 h-6 items-center"></div>
-                <div class="text-[10px] uppercase font-bold tracking-widest opacity-60 mt-1">Score</div>
-                <div id="score-val" class="text-3xl font-black text-yellow-400">0</div>
-            </div>
-            <div class="timer-badge">
-                <span id="timer-val">10</span>s
+                <div class="w-full space-y-6 mb-8 text-white">
+                    <div>
+                        <label class="text-[9px] uppercase font-bold text-white/40 mb-3 block text-center tracking-widest">Duration</label>
+                        <div class="flex justify-between gap-2" id="time-selector">
+                            <div class="selector-item glass flex-1 py-2 rounded-xl text-center font-arcade text-xs active" data-val="10">10s</div>
+                            <div class="selector-item glass flex-1 py-2 rounded-xl text-center font-arcade text-xs" data-val="20">20s</div>
+                            <div class="selector-item glass flex-1 py-2 rounded-xl text-center font-arcade text-xs" data-val="30">30s</div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-[9px] uppercase font-bold text-white/40 mb-3 block text-center tracking-widest">Arrows</label>
+                        <div class="flex justify-between gap-2" id="arrow-selector">
+                            <div class="selector-item glass flex-1 py-2 rounded-xl text-center font-arcade text-xs" data-val="3">03</div>
+                            <div class="selector-item glass flex-1 py-2 rounded-xl text-center font-arcade text-xs active" data-val="5">05</div>
+                            <div class="selector-item glass flex-1 py-2 rounded-xl text-center font-arcade text-xs" data-val="10">10</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="start-btn" class="btn-arcade w-full py-5 rounded-2xl bg-cyan-400 text-black font-black text-xl italic tracking-tighter shadow-[0_0_30px_rgba(34,211,238,0.3)] disabled:opacity-20" disabled>
+                    LOADING AI...
+                </button>
             </div>
         </div>
 
-        <div id="overlay-content" class="flex flex-grow flex-col items-center justify-center pointer-events-auto">
-            <div id="start-screen" class="modal">
-                <h1 class="text-4xl font-black mb-2 text-yellow-400 uppercase tracking-tighter leading-none">Blink<br>Archer AR</h1>
-                <p class="mb-8 opacity-80 text-sm leading-relaxed mt-4">
-                    Aim with your head and <span class="text-green-400 font-bold underline decoration-2">blink firmly</span> to shoot.<br>
-                    <span class="opacity-50 text-[10px] mt-4 block">Requesting edge-to-edge view...</span>
-                </p>
-                <button id="start-btn" class="w-full bg-yellow-500 text-black py-4 rounded-2xl font-black text-xl shadow-lg active:scale-95 disabled:opacity-50 transition-all" disabled>
-                    LOADING AR...
-                </button>
+        <!-- HUD -->
+        <div id="hud" class="hidden-screen flex flex-col justify-between h-full w-full screen-fade">
+            <div class="flex justify-between items-start pt-[env(safe-area-inset-top,0px)]">
+                <div class="stats-badge glass rounded-2xl p-4 min-w-[100px]">
+                    <div class="text-[9px] uppercase font-bold text-cyan-400 tracking-widest mb-1">SCORE</div>
+                    <div id="score-val" class="font-arcade text-3xl font-black tabular-nums transition-transform">0000</div>
+                    <div id="arrow-container" class="flex gap-1 mt-3 h-4"></div>
+                </div>
+                
+                <div id="timer-box" class="timer-badge glass rounded-full px-5 py-3 border-2 border-cyan-400 flex flex-col items-center">
+                    <span id="timer-val" class="font-arcade text-2xl font-black tabular-nums">10</span>
+                </div>
             </div>
 
-            <div id="end-screen" class="modal hidden">
-                <h2 class="text-xl font-bold mb-1 opacity-70">SESSION END</h2>
-                <div id="rank-badge" class="inline-block px-3 py-1 rounded-lg bg-yellow-500 text-black font-black text-xs mb-4 italic uppercase tracking-wider">ROOKIE</div>
-                <div class="text-7xl font-black mb-2 text-white tabular-nums" id="final-score">0</div>
-                <div class="text-sm opacity-60 mb-8">
-                    Personal Best: <span id="best-score" class="font-bold text-white">0</span>
+            <!-- Feedback Bar -->
+            <div class="absolute bottom-10 left-1/2 -translate-x-1/2 w-32 h-1 glass rounded-full overflow-hidden">
+                <div id="blink-fill" class="h-full bg-cyan-400 transition-all duration-75" style="width: 0%"></div>
+            </div>
+
+            <div id="combo-hud" class="combo-meter opacity-0 transition-opacity duration-300">
+                <div class="text-xs font-black text-pink-500 tracking-tighter uppercase italic opacity-70">COMBO</div>
+                <div id="combo-val" class="font-arcade text-5xl font-black italic text-pink-500">x1</div>
+            </div>
+        </div>
+
+        <!-- RESULTS SCREEN -->
+        <div id="end-screen" class="hidden-screen screen-fade flex flex-col items-center justify-center h-full pointer-events-auto">
+            <div class="modal glass rounded-[2.5rem] p-10 w-full max-w-sm flex flex-col items-center">
+                <div id="rank-badge" class="px-4 py-1 rounded bg-pink-500 text-black font-black text-[9px] tracking-widest uppercase mb-4 text-white">RECRUIT</div>
+                <div id="final-score" class="font-arcade text-7xl font-black text-white italic mb-8">000</div>
+                
+                <div class="w-full grid grid-cols-2 gap-3 mb-8">
+                    <div class="glass rounded-2xl p-4 text-center">
+                        <div class="text-[8px] opacity-40 font-bold uppercase tracking-widest text-white">BEST</div>
+                        <div id="best-score" class="font-arcade text-lg text-cyan-400">0</div>
+                    </div>
+                    <div class="glass rounded-2xl p-4 text-center">
+                        <div class="text-[8px] opacity-40 font-bold uppercase tracking-widest text-white">AVG.</div>
+                        <div id="avg-score" class="font-arcade text-lg text-pink-500">0</div>
+                    </div>
                 </div>
-                <button id="restart-btn" class="w-full bg-white text-black py-4 rounded-2xl font-black text-xl shadow-lg active:scale-95 transition-all">
-                    PLAY AGAIN
-                </button>
+
+                <div class="w-full space-y-3">
+                    <button id="restart-btn" class="btn-arcade w-full py-4 rounded-xl bg-white text-black font-black text-lg italic tracking-tighter">REPLAY</button>
+                    <button id="menu-btn" class="btn-arcade w-full py-3 rounded-xl glass text-white font-bold text-xs uppercase tracking-widest">SETTINGS</button>
+                </div>
             </div>
         </div>
     </div>
@@ -193,34 +179,65 @@
 <script type="module">
     import { FaceLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3";
 
-    // --- Config ---
-    const GAME_DURATION = 10;
-    const MAX_ARROWS = 5;
-    const BLINK_SENSITIVITY = 0.48; 
+    const CONFIG = {
+        sensitivity: 0.45,
+        hitRadius: 0.1, // Increased hit radius for easier mobile gameplay
+        colors: {
+            primary: '#00f2ff',
+            secondary: '#ff00c8',
+            success: '#39ff14',
+            fail: '#ff0000'
+        }
+    };
 
-    // --- State ---
-    let gameState = 'START'; 
-    let score = 0;
-    let arrowsLeft = MAX_ARROWS;
-    let timeLeft = GAME_DURATION;
-    let bestScore = parseInt(localStorage.getItem('blinkArcherBest')) || 0;
-    let timerInterval = null;
+    let state = {
+        gameState: 'START',
+        score: 0,
+        arrows: 5,
+        time: 10,
+        combo: 1,
+        totalGames: parseInt(localStorage.getItem('ba_totalGames')) || 0,
+        allTimeScore: parseInt(localStorage.getItem('ba_allTimeScore')) || 0,
+        bestScore: parseInt(localStorage.getItem('ba_bestScore')) || 0,
+        lastVideoTime: -1,
+        hasFired: false
+    };
 
-    let faceLandmarker;
     const video = document.getElementById('video');
     const canvas = document.getElementById('overlay');
     const ctx = canvas.getContext('2d');
-    const startBtn = document.getElementById('start-btn');
-    const blinkFill = document.getElementById('blink-fill');
     
-    let lastVideoTime = -1;
-    let audioCtx = null;
-    let target = { x: 0.5, y: 0.5, vx: 0.005, vy: 0.003 };
-    let crosshair = { x: 0.5, y: 0.5, active: false };
+    let faceLandmarker;
+    let timerInterval;
+    let audioCtx;
     let particles = [];
-    let hasFiredInCurrentBlink = false;
+    let target = { x: 0.5, y: 0.5, vx: 0.005, vy: 0.003, active: false };
+    let crosshair = { x: 0.5, y: 0.5, active: false };
 
-    // --- Audio & Haptics ---
+    // --- Coordinate Mapping Helpers ---
+    // Maps 0-1 video space to 0-1 screen space accounting for object-fit: cover
+    function mapVideoToScreen(coordX, coordY) {
+        if (!video.videoWidth) return { x: coordX, y: coordY };
+
+        const videoAspect = video.videoWidth / video.videoHeight;
+        const screenAspect = window.innerWidth / window.innerHeight;
+
+        let mappedX = coordX;
+        let mappedY = coordY;
+
+        if (videoAspect > screenAspect) {
+            // Video is wider than screen - X is cropped
+            const visibleWidth = screenAspect / videoAspect;
+            mappedX = (coordX - (1 - visibleWidth) / 2) / visibleWidth;
+        } else {
+            // Video is taller than screen - Y is cropped
+            const visibleHeight = videoAspect / screenAspect;
+            mappedY = (coordY - (1 - visibleHeight) / 2) / visibleHeight;
+        }
+
+        return { x: mappedX, y: mappedY };
+    }
+
     function initAudio() {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -228,31 +245,27 @@
 
     function playSound(type) {
         if (!audioCtx) return;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain); gain.connect(audioCtx.destination);
         const now = audioCtx.currentTime;
-
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        osc.connect(g); g.connect(audioCtx.destination);
         if (type === 'shoot') {
-            osc.frequency.setValueAtTime(450, now);
-            osc.frequency.exponentialRampToValueAtTime(80, now + 0.1);
-            gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.1);
+            osc.frequency.setValueAtTime(400, now); osc.frequency.exponentialRampToValueAtTime(50, now + 0.1);
+            g.gain.setValueAtTime(0.1, now); g.gain.linearRampToValueAtTime(0, now + 0.1);
             osc.start(); osc.stop(now + 0.1);
         } else if (type === 'hit') {
-            osc.frequency.setValueAtTime(600, now);
-            osc.frequency.exponentialRampToValueAtTime(1200, now + 0.15);
-            gain.gain.setValueAtTime(0.15, now); gain.gain.linearRampToValueAtTime(0, now + 0.2);
+            osc.frequency.setValueAtTime(800 + (state.combo * 50), now); osc.frequency.exponentialRampToValueAtTime(1600, now + 0.05);
+            g.gain.setValueAtTime(0.15, now); g.gain.linearRampToValueAtTime(0, now + 0.2);
             osc.start(); osc.stop(now + 0.2);
-            if (navigator.vibrate) navigator.vibrate(80);
+            if (navigator.vibrate) navigator.vibrate(50);
         } else if (type === 'miss') {
-            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(140, now);
-            gain.gain.setValueAtTime(0.08, now); gain.gain.linearRampToValueAtTime(0, now + 0.3);
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(120, now);
+            g.gain.setValueAtTime(0.05, now); g.gain.linearRampToValueAtTime(0, now + 0.3);
             osc.start(); osc.stop(now + 0.3);
-            if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
+            if (navigator.vibrate) navigator.vibrate([30, 20]);
         }
     }
 
-    // --- MediaPipe Init ---
     async function initAR() {
         try {
             const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm");
@@ -266,238 +279,229 @@
                 numFaces: 1
             });
 
-            const constraints = {
-                video: { 
-                    facingMode: 'user', 
-                    width: { ideal: 1280 }, 
-                    height: { ideal: 720 },
-                    frameRate: { ideal: 30 }
-                },
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'user', width: 640, height: 480 },
                 audio: false
-            };
-            
-            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            });
             video.srcObject = stream;
-            
             video.onloadedmetadata = () => {
-                const resize = () => {
-                    canvas.width = window.innerWidth;
-                    canvas.height = window.innerHeight;
-                };
-                window.addEventListener('resize', resize);
-                resize();
-                
-                startBtn.innerText = "START HUNTING";
-                startBtn.disabled = false;
-                requestAnimationFrame(gameLoop);
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                document.getElementById('start-btn').innerText = "ENTER ARENA";
+                document.getElementById('start-btn').disabled = false;
+                requestAnimationFrame(loop);
             };
-        } catch (err) {
-            console.error(err);
-            startBtn.innerText = "ERROR: CHECK CAMERA";
+        } catch (e) {
+            document.getElementById('start-btn').innerText = "CAMERA BLOCKED";
         }
-    }
-
-    // --- Fullscreen Trigger ---
-    function toggleFullscreen() {
-        const docEl = document.documentElement;
-        const requestFS = docEl.requestFullscreen || docEl.webkitRequestFullScreen || docEl.mozRequestFullScreen;
-        if (requestFS) {
-            requestFS.call(docEl).catch(() => {});
-        }
-    }
-
-    // --- Gameplay ---
-    function updateHUD() {
-        document.getElementById('score-val').innerText = score;
-        document.getElementById('timer-val').innerText = Math.ceil(timeLeft);
-        const container = document.getElementById('arrow-container');
-        container.innerHTML = '';
-        for(let i=0; i < MAX_ARROWS; i++) {
-            container.innerHTML += `<div class="w-3 h-6 rounded-sm border border-white/20 ${i < arrowsLeft ? 'bg-yellow-400 shadow-[0_0_15px_#facc15]' : 'bg-white/5'}"></div>`;
-        }
-    }
-
-    function fire() {
-        if (gameState !== 'PLAYING' || arrowsLeft <= 0) return;
-        
-        arrowsLeft--;
-        playSound('shoot');
-        
-        const dx = Math.abs(crosshair.x - target.x);
-        const dy = Math.abs(crosshair.y - target.y);
-        
-        if (dx < 0.1 && dy < 0.1) {
-            score += 10;
-            playSound('hit');
-            createParticles(target.x, target.y, '#facc15');
-            spawnTarget();
-        } else {
-            playSound('miss');
-        }
-        
-        updateHUD();
-        if (arrowsLeft === 0) setTimeout(gameOver, 800);
     }
 
     function spawnTarget() {
-        target.x = 0.25 + Math.random() * 0.5;
-        target.y = 0.3 + Math.random() * 0.4;
-        const diff = 1 + (score * 0.04);
-        target.vx = (Math.random() - 0.5) * 0.012 * diff;
-        target.vy = (Math.random() - 0.5) * 0.012 * diff;
+        target.x = 0.2 + Math.random() * 0.6;
+        target.y = 0.2 + Math.random() * 0.6;
+        const diff = 1 + (state.score / 150);
+        target.vx = (Math.random() - 0.5) * 0.015 * diff;
+        target.vy = (Math.random() - 0.5) * 0.015 * diff;
+        target.active = true;
+    }
+
+    function fire() {
+        if (state.gameState !== 'PLAYING' || state.arrows <= 0) return;
+        state.arrows--;
+        playSound('shoot');
+
+        const dx = Math.abs(crosshair.x - target.x);
+        const dy = Math.abs(crosshair.y - target.y);
+
+        if (dx < CONFIG.hitRadius && dy < CONFIG.hitRadius) {
+            state.score += 10 * state.combo;
+            state.combo++;
+            playSound('hit');
+            triggerRipple(target.x, target.y);
+            createParticles(target.x, target.y, CONFIG.colors.success);
+            spawnTarget();
+            if (state.combo > 1) {
+                const c = document.getElementById('combo-hud');
+                c.classList.replace('opacity-0', 'opacity-100');
+                document.getElementById('combo-val').innerText = `x${state.combo}`;
+            }
+        } else {
+            state.combo = 1;
+            playSound('miss');
+            createParticles(crosshair.x, crosshair.y, CONFIG.colors.fail);
+            document.getElementById('combo-hud').classList.replace('opacity-100', 'opacity-0');
+        }
+        updateHUD();
+        if (state.arrows === 0) setTimeout(endGame, 1000);
+    }
+
+    function triggerRipple(x, y) {
+        const div = document.createElement('div');
+        div.className = 'ripple';
+        // Mirror the UI position
+        div.style.left = `${(1 - x) * 100}%`;
+        div.style.top = `${y * 100}%`;
+        div.style.width = '120px'; div.style.height = '120px';
+        div.style.marginLeft = '-60px'; div.style.marginTop = '-60px';
+        document.body.appendChild(div);
+        setTimeout(() => div.remove(), 600);
     }
 
     function createParticles(x, y, color) {
-        for (let i = 0; i < 20; i++) {
+        for (let i = 0; i < 15; i++) {
             particles.push({
-                x, y,
-                vx: (Math.random() - 0.5) * 0.06,
-                vy: (Math.random() - 0.5) * 0.06,
-                life: 1.0,
-                color
+                x, y, vx: (Math.random() - 0.5) * 0.05, vy: (Math.random() - 0.5) * 0.05,
+                life: 1.0, color
             });
         }
     }
 
-    function gameOver() {
-        if (gameState === 'END') return;
-        gameState = 'END';
-        clearInterval(timerInterval);
-        if (score > bestScore) {
-            bestScore = score;
-            localStorage.setItem('blinkArcherBest', bestScore);
+    function updateHUD() {
+        document.getElementById('score-val').innerText = state.score.toString().padStart(4, '0');
+        document.getElementById('timer-val').innerText = Math.ceil(state.time);
+        const container = document.getElementById('arrow-container');
+        container.innerHTML = '';
+        const count = parseInt(document.querySelector('#arrow-selector .active').dataset.val);
+        for(let i=0; i<count; i++) {
+            container.innerHTML += `<div class="w-2.5 h-full rounded-sm ${i < state.arrows ? 'bg-cyan-400 shadow-[0_0_10px_#00f2ff]' : 'bg-white/10'}"></div>`;
         }
-        document.getElementById('hud').classList.add('hidden');
-        document.getElementById('end-screen').classList.remove('hidden');
-        document.getElementById('final-score').innerText = score;
-        document.getElementById('best-score').innerText = bestScore;
-        
-        let rank = "ROOKIE";
-        if (score >= 20) rank = "BEGINNER";
-        if (score >= 40) rank = "PRO";
-        if (score >= 60) rank = "ELITE";
-        document.getElementById('rank-badge').innerText = rank;
+        if (state.time <= 3) document.getElementById('timer-box').classList.add('animate-pulse-critical');
+        else document.getElementById('timer-box').classList.remove('animate-pulse-critical');
     }
 
-    function startGame() {
-        initAudio();
-        toggleFullscreen();
-        gameState = 'PLAYING';
-        score = 0;
-        arrowsLeft = MAX_ARROWS;
-        timeLeft = GAME_DURATION;
-        spawnTarget();
-        updateHUD();
-        document.getElementById('start-screen').classList.add('hidden');
-        document.getElementById('end-screen').classList.add('hidden');
-        document.getElementById('hud').classList.remove('hidden');
-
-        if (timerInterval) clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-            timeLeft--;
-            updateHUD();
-            if (timeLeft <= 0) gameOver();
-        }, 1000);
-    }
-
-    // --- Main Game Loop ---
-    function gameLoop() {
-        if (video.currentTime !== lastVideoTime && faceLandmarker) {
-            lastVideoTime = video.currentTime;
-            const result = faceLandmarker.detectForVideo(video, performance.now());
-            
-            if (result.faceLandmarks && result.faceLandmarks.length > 0) {
+    function loop() {
+        if (video.currentTime !== state.lastVideoTime && faceLandmarker) {
+            state.lastVideoTime = video.currentTime;
+            const res = faceLandmarker.detectForVideo(video, performance.now());
+            if (res.faceLandmarks && res.faceLandmarks.length > 0) {
                 crosshair.active = true;
-                const landmarks = result.faceLandmarks[0];
-                const bridge = landmarks[168]; 
-                crosshair.x = bridge.x;
-                crosshair.y = bridge.y;
+                const noseRaw = res.faceLandmarks[0][168];
+                
+                // Map tracking to visible screen area
+                const mapped = mapVideoToScreen(noseRaw.x, noseRaw.y);
+                crosshair.x = mapped.x;
+                crosshair.y = mapped.y;
 
-                if (result.faceBlendshapes && result.faceBlendshapes.length > 0) {
-                    const categories = result.faceBlendshapes[0].categories;
-                    const leftBlink = categories.find(c => c.categoryName === "eyeBlinkLeft")?.score || 0;
-                    const rightBlink = categories.find(c => c.categoryName === "eyeBlinkRight")?.score || 0;
-                    const avgBlink = (leftBlink + rightBlink) / 2;
-
-                    blinkFill.style.width = (avgBlink * 100) + "%";
-                    blinkFill.style.backgroundColor = avgBlink > BLINK_SENSITIVITY ? "#ef4444" : "#4ade80";
-
-                    if (avgBlink > BLINK_SENSITIVITY) {
-                        if (!hasFiredInCurrentBlink) {
-                            fire();
-                            hasFiredInCurrentBlink = true;
-                        }
-                    } else {
-                        hasFiredInCurrentBlink = false;
-                    }
+                if (res.faceBlendshapes && res.faceBlendshapes.length > 0) {
+                    const blinks = res.faceBlendshapes[0].categories;
+                    const bL = blinks.find(c => c.categoryName === 'eyeBlinkLeft')?.score || 0;
+                    const bR = blinks.find(c => c.categoryName === 'eyeBlinkRight')?.score || 0;
+                    const blink = (bL + bR) / 2;
+                    document.getElementById('blink-fill').style.width = `${blink * 100}%`;
+                    if (blink > CONFIG.sensitivity) {
+                        if (!state.hasFired) { fire(); state.hasFired = true; }
+                    } else { state.hasFired = false; }
                 }
-            } else {
-                crosshair.active = false;
-                blinkFill.style.width = "0%";
-            }
+            } else { crosshair.active = false; }
         }
-
-        renderCanvas();
-        requestAnimationFrame(gameLoop);
+        render();
+        requestAnimationFrame(loop);
     }
 
-    function renderCanvas() {
+    function render() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const w = canvas.width;
+        const h = canvas.height;
 
         if (crosshair.active) {
-            const cx = crosshair.x * canvas.width;
-            const cy = crosshair.y * canvas.height;
-            ctx.strokeStyle = hasFiredInCurrentBlink ? "#ef4444" : "#4ade80";
+            const cx = crosshair.x * w;
+            const cy = crosshair.y * h;
+            ctx.strokeStyle = state.hasFired ? CONFIG.colors.fail : CONFIG.colors.primary;
             ctx.lineWidth = 4;
-            ctx.beginPath();
-            ctx.arc(cx, cy, 35, 0, Math.PI * 2);
+            ctx.beginPath(); ctx.arc(cx, cy, 32, 0, Math.PI * 2); ctx.stroke();
+            ctx.beginPath(); 
+            ctx.moveTo(cx - 45, cy); ctx.lineTo(cx - 15, cy);
+            ctx.moveTo(cx + 45, cy); ctx.lineTo(cx + 15, cy);
+            ctx.moveTo(cx, cy - 45); ctx.lineTo(cx, cy - 15);
+            ctx.moveTo(cx, cy + 45); ctx.lineTo(cx, cy + 15);
             ctx.stroke();
-            
-            ctx.beginPath();
-            ctx.moveTo(cx - 50, cy); ctx.lineTo(cx - 15, cy);
-            ctx.moveTo(cx + 50, cy); ctx.lineTo(cx + 15, cy);
-            ctx.moveTo(cx, cy - 50); ctx.lineTo(cx, cy - 15);
-            ctx.moveTo(cx, cy + 50); ctx.lineTo(cx, cy + 15);
-            ctx.stroke();
-            
-            ctx.fillStyle = hasFiredInCurrentBlink ? "#ef4444" : "#4ade80";
-            ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = ctx.strokeStyle;
+            ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI * 2); ctx.fill();
         }
 
-        if (gameState === 'PLAYING') {
+        if (state.gameState === 'PLAYING' && target.active) {
             target.x += target.vx; target.y += target.vy;
-            if (target.x < 0.1 || target.x > 0.9) target.vx *= -1;
-            if (target.y < 0.2 || target.y > 0.8) target.vy *= -1;
+            if (target.x < 0.1) { target.x = 0.1; target.vx *= -1; }
+            if (target.x > 0.9) { target.x = 0.9; target.vx *= -1; }
+            if (target.y < 0.2) { target.y = 0.2; target.vy *= -1; }
+            if (target.y > 0.8) { target.y = 0.8; target.vy *= -1; }
 
-            const tx = target.x * canvas.width;
-            const ty = target.y * canvas.height;
+            const tx = target.x * w;
+            const ty = target.y * h;
             
-            ctx.shadowBlur = 30; ctx.shadowColor = "rgba(255,0,0,0.8)";
             ctx.fillStyle = "white";
-            ctx.beginPath(); ctx.arc(tx, ty, 40, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = "#ef4444";
-            ctx.beginPath(); ctx.arc(tx, ty, 30, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(tx, ty, 35, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = CONFIG.colors.secondary;
+            ctx.beginPath(); ctx.arc(tx, ty, 25, 0, Math.PI * 2); ctx.fill();
             ctx.fillStyle = "white";
-            ctx.beginPath(); ctx.arc(tx, ty, 12, 0, Math.PI * 2); ctx.fill();
-            ctx.shadowBlur = 0;
+            ctx.beginPath(); ctx.arc(tx, ty, 10, 0, Math.PI * 2); ctx.fill();
 
             for (let i = particles.length - 1; i >= 0; i--) {
                 const p = particles[i];
-                p.x += p.vx; p.y += p.vy; p.life -= 0.025;
+                p.x += p.vx; p.y += p.vy; p.life -= 0.03;
                 if (p.life <= 0) { particles.splice(i, 1); continue; }
                 ctx.fillStyle = p.color;
                 ctx.globalAlpha = p.life;
-                ctx.fillRect(p.x * canvas.width, p.y * canvas.height, 8, 8);
+                ctx.fillRect(p.x * w, p.y * h, 6, 6);
             }
             ctx.globalAlpha = 1.0;
         }
     }
 
-    // --- Init ---
-    window.addEventListener('load', initAR);
-    startBtn.onclick = startGame;
-    document.getElementById('restart-btn').onclick = startGame;
+    function startGame() {
+        initAudio();
+        state.gameState = 'PLAYING';
+        state.score = 0;
+        state.combo = 1;
+        state.time = parseInt(document.querySelector('#time-selector .active').dataset.val);
+        state.arrows = parseInt(document.querySelector('#arrow-selector .active').dataset.val);
+        spawnTarget();
+        updateHUD();
+        document.getElementById('start-screen').classList.add('hidden-screen');
+        document.getElementById('end-screen').classList.add('hidden-screen');
+        document.getElementById('hud').classList.remove('hidden-screen');
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            state.time--;
+            updateHUD();
+            if (state.time <= 0) endGame();
+        }, 1000);
+    }
 
+    function endGame() {
+        if (state.gameState === 'END') return;
+        state.gameState = 'END';
+        clearInterval(timerInterval);
+        state.totalGames++;
+        state.allTimeScore += state.score;
+        if (state.score > state.bestScore) state.bestScore = state.score;
+        localStorage.setItem('ba_totalGames', state.totalGames);
+        localStorage.setItem('ba_allTimeScore', state.allTimeScore);
+        localStorage.setItem('ba_bestScore', state.bestScore);
+        document.getElementById('hud').classList.add('hidden-screen');
+        document.getElementById('end-screen').classList.remove('hidden-screen');
+        document.getElementById('final-score').innerText = state.score.toString().padStart(3, '0');
+        document.getElementById('best-score').innerText = state.bestScore;
+        document.getElementById('avg-score').innerText = Math.round(state.allTimeScore / state.totalGames);
+        const rank = state.score >= 100 ? 'LEGEND' : state.score >= 60 ? 'ELITE' : 'SOLDIER';
+        document.getElementById('rank-badge').innerText = rank;
+    }
+
+    document.querySelectorAll('.selector-item').forEach(el => {
+        el.onclick = () => {
+            el.parentElement.querySelectorAll('.selector-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+        };
+    });
+
+    document.getElementById('start-btn').onclick = startGame;
+    document.getElementById('restart-btn').onclick = startGame;
+    document.getElementById('menu-btn').onclick = () => {
+        document.getElementById('end-screen').classList.add('hidden-screen');
+        document.getElementById('start-screen').classList.remove('hidden-screen');
+    };
+
+    window.onload = initAR;
 </script>
 </body>
 </html>

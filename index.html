@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>BLINK ARCHER: OVERDRIVE</title>
+    <title>BLINK ARCHER: OVERDRIVE - REFINED</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Space+Grotesk:wght@300;500;700&display=swap');
@@ -13,7 +13,8 @@
             --neon-pink: #ff00c8;
             --neon-purple: #9d00ff;
             --neon-green: #39ff14;
-            --bg-dark: #050505;
+            --virus-red: #ff2d2d;
+            --bg-dark: #020205;
         }
 
         body, html {
@@ -24,7 +25,7 @@
             color: white;
         }
 
-        .font-arcade { font-family: 'Russo One', sans-serif; text-transform: uppercase; }
+        .font-arcade { font-family: 'Russo One', sans-serif; text-transform: uppercase; letter-spacing: -0.02em; }
 
         #container {
             position: relative; width: 100vw; height: 100dvh;
@@ -38,101 +39,75 @@
             transform: scaleX(-1); object-fit: cover;
         }
 
-        /* UI Overlays */
         .ui-screen {
-            position: absolute; inset: 0; z-index: 50;
+            position: absolute; inset: 0; z-index: 100;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            background: radial-gradient(circle at center, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.9) 100%);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            background: radial-gradient(circle at center, rgba(0,0,0,0.4) 0%, rgba(0,0,20,0.95) 100%);
             backdrop-filter: blur(0px);
         }
 
-        .ui-screen.hidden {
-            opacity: 0; pointer-events: none; transform: scale(1.1);
-            backdrop-filter: blur(0px);
-        }
+        .ui-screen.hidden { opacity: 0; pointer-events: none; transform: scale(1.05) translateY(20px); backdrop-filter: blur(0px); }
+        .ui-screen.visible { opacity: 1; pointer-events: auto; transform: scale(1) translateY(0); backdrop-filter: blur(25px); }
 
-        .ui-screen.visible {
-            opacity: 1; pointer-events: auto; transform: scale(1);
-            backdrop-filter: blur(15px);
-        }
-
-        /* Glassmorphism */
         .glass {
-            background: rgba(15, 15, 25, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+            background: rgba(5, 5, 15, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), inset 0 0 20px rgba(255,255,255,0.05);
             border-radius: 2rem;
+            backdrop-filter: blur(16px);
         }
 
-        .neon-border-cyan { border: 1px solid var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); }
-        .neon-text-cyan { color: var(--neon-cyan); text-shadow: 0 0 10px var(--neon-cyan); }
-        .neon-text-pink { color: var(--neon-pink); text-shadow: 0 0 10px var(--neon-pink); }
-
-        /* Animations */
-        @keyframes scanline {
-            0% { transform: translateY(-100%); }
-            100% { transform: translateY(100%); }
-        }
-        .scanline {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(to bottom, transparent, rgba(0, 242, 255, 0.05), transparent);
-            animation: scanline 8s linear infinite;
-            pointer-events: none; z-index: 5;
-        }
-
-        @keyframes pulse-vignette {
-            0%, 100% { box-shadow: inset 0 0 100px rgba(0,0,0,0.9); }
-            50% { box-shadow: inset 0 0 150px rgba(255, 0, 0, 0.3); }
-        }
-        .critical-vignette {
-            position: absolute; inset: 0; z-index: 40;
-            pointer-events: none; opacity: 0; transition: opacity 0.5s;
-            animation: pulse-vignette 1s infinite;
-        }
-
+        .neon-border-cyan { border: 1px solid var(--neon-cyan); box-shadow: 0 0 30px rgba(0, 242, 255, 0.25); }
+        
         .btn-premium {
             background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
             color: black; font-weight: 900;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative; overflow: hidden;
         }
-        .btn-premium:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 30px var(--neon-cyan);
-        }
+        .btn-premium:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 15px 40px rgba(0, 242, 255, 0.4); }
         .btn-premium:active { transform: translateY(1px) scale(0.98); }
 
-        /* HUD Components */
-        .hud-element {
-            pointer-events: none;
-            position: absolute;
-            z-index: 30;
-        }
-
-        .timer-ring {
-            width: 80px; height: 80px;
-            transform: rotate(-90deg);
-        }
-
-        .score-counter {
-            font-variant-numeric: tabular-nums;
-        }
-
-        .combo-meter-container {
-            width: 120px; height: 10px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 5px; overflow: hidden;
-            margin-top: 5px;
-        }
+        .timer-ring { width: clamp(80px, 10vh, 110px); height: clamp(80px, 10vh, 110px); transform: rotate(-90deg); }
         
-        .shake { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); }
-            20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-            40%, 60% { transform: translate3d(4px, 0, 0); }
+        .scanline {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, transparent 50%, rgba(0, 242, 255, 0.03) 50%);
+            background-size: 100% 4px;
+            pointer-events: none; z-index: 10;
         }
+
+        .hud-container {
+            position: absolute; inset: 0; z-index: 85; pointer-events: none;
+            opacity: 0; transition: opacity 0.8s ease;
+        }
+
+        .hud-vignette {
+            position: absolute; top: 0; left: 0; right: 0; height: 180px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%);
+            z-index: -1;
+        }
+
+        .selector-btn {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+            color: rgba(255,255,255,0.4);
+        }
+        .selector-btn.active {
+            background: rgba(0, 242, 255, 0.15);
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.25);
+            color: white;
+        }
+
+        .loading-shimmer {
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
     </style>
 </head>
 <body>
@@ -143,353 +118,319 @@
     <div class="scanline"></div>
     <div id="critical-vignette" class="critical-vignette"></div>
 
+    <!-- TRACKING ERROR UI -->
+    <div id="tracking-lost-warning" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[95] opacity-0 transition-opacity duration-300 pointer-events-none">
+        <div class="glass p-8 border-red-500/50 flex flex-col items-center text-center">
+            <div class="w-12 h-12 border-4 border-red-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <div class="font-arcade text-red-500 text-2xl tracking-widest">Neural Link Lost</div>
+            <div class="text-[10px] uppercase font-bold text-white/40 mt-2">Check lighting and position</div>
+        </div>
+    </div>
+
     <!-- START SCREEN -->
     <div id="start-screen" class="ui-screen visible">
-        <div class="glass p-10 flex flex-col items-center w-[360px] max-w-[90vw] neon-border-cyan">
-            <div class="text-[10px] tracking-[0.5em] text-cyan-400 font-bold mb-2 uppercase">Neural Link Established</div>
-            <h1 class="font-arcade text-4xl mb-6 italic tracking-tighter text-center">Blink Archer<br><span class="text-pink-500">Overdrive</span></h1>
+        <div class="glass p-8 md:p-12 flex flex-col items-center w-[540px] max-w-[92vw] neon-border-cyan text-center">
+            <div class="text-[10px] tracking-[0.6em] text-cyan-400 font-bold mb-3 uppercase opacity-70">Synaptic Bridge Engaged</div>
+            <h1 class="font-arcade text-4xl md:text-6xl mb-8 italic tracking-tighter leading-[0.9]">Blink Archer<br><span class="text-pink-500 text-2xl md:text-4xl drop-shadow-[0_0_15px_rgba(236,72,153,0.5)]">Overdrive Refined</span></h1>
             
-            <div class="w-full space-y-4 mb-8">
-                <div class="space-y-2">
-                    <label class="text-[9px] uppercase font-bold text-white/40 tracking-widest block text-center">Simulation Depth</label>
-                    <div class="flex gap-2" id="time-selector">
-                        <button class="flex-1 py-2 glass text-xs font-arcade active neon-border-cyan" data-val="15">15s</button>
-                        <button class="flex-1 py-2 glass text-xs font-arcade" data-val="30">30s</button>
-                        <button class="flex-1 py-2 glass text-xs font-arcade" data-val="60">60s</button>
+            <div class="w-full space-y-6 mb-10">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-[9px] uppercase font-bold text-white/30 tracking-widest block">Simulation Time</label>
+                        <div class="flex gap-2" id="time-selector">
+                            <button class="flex-1 py-3 glass selector-btn text-[10px] font-arcade active" data-val="15">15</button>
+                            <button class="flex-1 py-3 glass selector-btn text-[10px] font-arcade" data-val="30">30</button>
+                            <button class="flex-1 py-3 glass selector-btn text-[10px] font-arcade" data-val="60">60</button>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[9px] uppercase font-bold text-white/30 tracking-widest block">Arsenal</label>
+                        <div class="flex gap-2" id="arrow-selector">
+                            <button class="flex-1 py-3 glass selector-btn text-[10px] font-arcade" data-val="5">05</button>
+                            <button class="flex-1 py-3 glass selector-btn text-[10px] font-arcade active" data-val="10">10</button>
+                            <button class="flex-1 py-3 glass selector-btn text-[10px] font-arcade" data-val="20">20</button>
+                        </div>
                     </div>
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-[9px] uppercase font-bold text-white/40 tracking-widest block text-center">Arsenal</label>
-                    <div class="flex gap-2" id="arrow-selector">
-                        <button class="flex-1 py-2 glass text-xs font-arcade" data-val="5">05</button>
-                        <button class="flex-1 py-2 glass text-xs font-arcade active neon-border-cyan" data-val="10">10</button>
-                        <button class="flex-1 py-2 glass text-xs font-arcade" data-val="20">20</button>
-                    </div>
-                </div>
-
-                <div class="space-y-2">
-                    <label class="text-[9px] uppercase font-bold text-white/40 tracking-widest block text-center">Target Skin</label>
-                    <div class="flex gap-2" id="skin-selector">
-                        <button class="flex-1 py-2 glass text-xs font-arcade active neon-border-cyan" data-val="standard">CORE</button>
-                        <button class="flex-1 py-2 glass text-xs font-arcade" data-val="bird">AVIS</button>
+                    <label class="text-[9px] uppercase font-bold text-white/30 tracking-widest block">Target Classification</label>
+                    <div class="grid grid-cols-2 gap-2" id="skin-selector">
+                        <button class="py-4 glass selector-btn text-[10px] font-arcade active" data-val="standard">CORE [Neon]</button>
+                        <button class="py-4 glass selector-btn text-[10px] font-arcade" data-val="bird">AVIS [Bio]</button>
+                        <button class="py-4 glass selector-btn text-[10px] font-arcade" data-val="bat">NOX [Noct]</button>
+                        <button class="py-4 glass selector-btn text-[10px] font-arcade" data-val="void">GALAXIA [Virus]</button>
                     </div>
                 </div>
             </div>
 
-            <button id="start-btn" class="btn-premium w-full py-5 rounded-2xl font-arcade text-xl tracking-tight disabled:opacity-30" disabled>
-                INITIALIZE CORE
+            <button id="start-btn" class="btn-premium w-full py-6 rounded-[2rem] font-arcade text-2xl tracking-tight disabled:opacity-20">
+                INITIALIZING...
             </button>
         </div>
     </div>
 
     <!-- HUD -->
-    <div id="hud" class="hud-element inset-0 opacity-0 transition-opacity duration-500">
-        <!-- Top Stats -->
-        <div class="absolute top-10 left-10 flex items-start gap-6">
-            <div class="glass p-4 min-w-[140px] border-l-4 border-l-cyan-400">
-                <div class="text-[9px] font-bold text-cyan-400 tracking-widest uppercase mb-1">Neural Score</div>
-                <div id="score-text" class="font-arcade text-4xl score-counter">0000</div>
-                <div class="combo-meter-container">
-                    <div id="combo-fill" class="h-full bg-pink-500 transition-all duration-300" style="width: 0%"></div>
+    <div id="hud" class="hud-container">
+        <div class="hud-vignette"></div>
+        
+        <div class="absolute top-6 md:top-10 left-6 md:left-10 flex items-start gap-4 md:gap-6">
+            <div class="glass p-3 md:p-4 min-w-[130px] md:min-w-[160px] border-l-4 border-l-cyan-400">
+                <div class="text-[8px] font-bold text-cyan-400 tracking-widest uppercase mb-0.5 opacity-80">Output</div>
+                <div id="score-text" class="font-arcade text-3xl md:text-5xl tabular-nums tracking-tighter text-white">0000</div>
+                <div class="flex items-center gap-2 mt-2">
+                    <div class="text-[7px] font-black text-pink-500 uppercase">Combo</div>
+                    <div class="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden border border-white/5">
+                        <div id="combo-fill" class="h-full bg-pink-500 shadow-[0_0_10px_pink] transition-all duration-300" style="width: 0%"></div>
+                    </div>
                 </div>
             </div>
-
+            
             <div class="relative flex items-center justify-center">
                 <svg class="timer-ring">
-                    <circle cx="40" cy="40" r="35" stroke="rgba(255,255,255,0.1)" stroke-width="6" fill="transparent" />
-                    <circle id="timer-progress" cx="40" cy="40" r="35" stroke="var(--neon-cyan)" stroke-width="6" fill="transparent" stroke-dasharray="219.9" stroke-dashoffset="0" stroke-linecap="round" />
+                    <circle cx="50%" cy="50%" r="40%" stroke="rgba(255,255,255,0.1)" stroke-width="6" fill="rgba(0,0,0,0.2)" />
+                    <circle id="timer-progress" cx="50%" cy="50%" r="40%" stroke="var(--neon-cyan)" stroke-width="6" fill="transparent" stroke-dasharray="251.3" stroke-dashoffset="0" stroke-linecap="round" />
                 </svg>
-                <div id="timer-text" class="absolute font-arcade text-xl">15</div>
+                <div id="timer-text" class="absolute font-arcade text-xl md:text-3xl text-center text-white drop-shadow-md">15</div>
             </div>
         </div>
 
-        <!-- Arrows -->
-        <div id="arrow-display" class="absolute top-10 right-10 flex gap-2">
-            <!-- Dynamic arrows -->
-        </div>
+        <div id="arrow-display" class="absolute top-6 md:top-10 right-6 md:right-10 flex gap-2 md:gap-3 items-center"></div>
 
-        <!-- Blink Indicator -->
-        <div class="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center">
-            <div class="text-[8px] font-black text-cyan-400 tracking-[0.3em] uppercase mb-2">Blink Trigger Status</div>
-            <div class="w-48 h-1.5 glass overflow-hidden">
-                <div id="blink-progress" class="h-full bg-cyan-400 transition-all duration-75" style="width: 0%"></div>
+        <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center">
+            <div class="text-[8px] font-black text-cyan-400 tracking-[0.5em] uppercase mb-2 opacity-80 drop-shadow-md">Synchronization</div>
+            <div class="w-48 md:w-64 h-2 glass overflow-hidden rounded-full p-0.5 border border-white/20">
+                <div id="blink-progress" class="h-full bg-cyan-400 rounded-full transition-all duration-75 shadow-[0_0_15px_cyan]" style="width: 0%"></div>
             </div>
         </div>
     </div>
 
-    <!-- RESULTS -->
-    <div id="end-screen" class="ui-screen hidden">
-        <div class="glass p-10 flex flex-col items-center w-[360px] neon-border-cyan">
-            <div id="rank-tag" class="px-4 py-1 bg-pink-600 rounded-full text-[10px] font-bold tracking-widest mb-4">RECRUIT</div>
-            <h2 class="text-white/40 text-[10px] uppercase tracking-widest mb-2">Final Neural Output</h2>
-            <div id="final-score-text" class="font-arcade text-7xl text-white italic mb-10">0000</div>
-
-            <div class="grid grid-cols-2 gap-4 w-full mb-10">
-                <div class="glass p-4 text-center">
-                    <div class="text-[8px] text-white/40 uppercase mb-1">Accuracy</div>
-                    <div id="accuracy-stat" class="font-arcade text-xl text-cyan-400">0%</div>
+    <!-- END SCREEN (RESIZED & COMPACT) -->
+    <div id="end-screen" class="ui-screen hidden overflow-y-auto">
+        <div class="glass p-6 md:p-8 flex flex-col items-center w-[380px] max-w-[95vw] neon-border-cyan my-4 text-center">
+            <div id="ai-callsign" class="text-[10px] font-black text-cyan-400 tracking-[0.4em] mb-1 uppercase opacity-70">Detecting neural ID...</div>
+            <div id="rank-tag" class="px-4 py-1 bg-pink-600 rounded-full text-[10px] font-black tracking-[0.3em] mb-4 uppercase shadow-[0_0_15px_rgba(219,39,119,0.3)]">Recruit</div>
+            
+            <div id="final-score-text" class="font-arcade text-5xl md:text-6xl text-white italic mb-6 drop-shadow-xl">0000</div>
+            
+            <div class="grid grid-cols-2 gap-3 w-full mb-6">
+                <div class="glass p-3 md:p-4 bg-white/[0.02]">
+                    <div class="text-[7px] text-white/30 uppercase mb-1 font-bold">Accuracy</div>
+                    <div id="accuracy-stat" class="font-arcade text-xl md:text-2xl text-cyan-400">0%</div>
                 </div>
-                <div class="glass p-4 text-center">
-                    <div class="text-[8px] text-white/40 uppercase mb-1">Max Combo</div>
-                    <div id="combo-stat" class="font-arcade text-xl text-pink-500">x0</div>
+                <div class="glass p-3 md:p-4 bg-white/[0.02]">
+                    <div class="text-[7px] text-white/30 uppercase mb-1 font-bold">Streak</div>
+                    <div id="combo-stat" class="font-arcade text-xl md:text-2xl text-pink-500">x0</div>
                 </div>
             </div>
 
-            <button id="restart-btn" class="btn-premium w-full py-4 rounded-xl font-arcade mb-3">SYNCHRONIZE AGAIN</button>
-            <button id="menu-btn" class="w-full py-3 glass rounded-xl text-[10px] font-bold tracking-widest uppercase">Return to Hub</button>
+            <div id="ai-debrief-container" class="w-full mb-6 space-y-3">
+                <div class="glass p-3 bg-black/40 border-cyan-400/20 relative overflow-hidden">
+                    <div id="ai-debrief-text" class="text-[10px] leading-relaxed text-white/60 italic min-h-[30px] flex items-center justify-center">
+                        Processing session data...
+                    </div>
+                    <div id="ai-loading-indicator" class="absolute inset-0 loading-shimmer hidden"></div>
+                </div>
+                <div class="flex gap-2">
+                    <button id="ai-debrief-btn" class="flex-1 py-2 glass text-[9px] font-bold tracking-widest text-cyan-400 border-cyan-400/40 hover:bg-cyan-400/10 transition-colors uppercase">✨ Debrief</button>
+                    <button id="ai-callsign-btn" class="flex-1 py-2 glass text-[9px] font-bold tracking-widest text-pink-400 border-pink-400/40 hover:bg-pink-400/10 transition-colors uppercase">✨ Callsign</button>
+                </div>
+            </div>
+            
+            <button id="restart-btn" class="btn-premium w-full py-4 rounded-[1.5rem] font-arcade text-xl mb-3">RE-SYNC CORE</button>
+            <button id="menu-btn" class="w-full py-3 glass rounded-[1.2rem] text-[9px] font-bold tracking-[0.2em] uppercase hover:bg-white/5 transition-colors">Abort Session</button>
         </div>
     </div>
 
-    <!-- COUNTDOWN -->
     <div id="countdown" class="ui-screen hidden !bg-transparent">
-        <div id="countdown-text" class="font-arcade text-9xl italic text-cyan-400">3</div>
+        <div id="countdown-text" class="font-arcade text-[12rem] italic text-cyan-400 drop-shadow-[0_0_60px_rgba(0,242,255,0.5)] text-center">3</div>
     </div>
 </div>
 
 <script type="module">
     import { FaceLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3";
 
-    // --- GAME CONSTANTS ---
+    // --- UTILS ---
+    const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
+    const lerp = (a, b, n) => (1 - n) * a + n * b;
+
+    // --- GEMINI API INTEGRATION ---
+    const apiKey = ""; 
+
+    async function callGemini(prompt) {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        const payload = {
+            contents: [{ parts: [{ text: prompt }] }],
+            systemInstruction: { parts: [{ text: "You are the central AI core of the Blink Archer simulation. Be futuristic, concise, and professional. Use tactical terminology." }] }
+        };
+
+        const execute = async (retryCount = 0) => {
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error('API request failed');
+                const result = await response.json();
+                return result.candidates?.[0]?.content?.parts?.[0]?.text || "Neural connection timeout.";
+            } catch (err) {
+                if (retryCount < 4) {
+                    const delay = Math.pow(2, retryCount) * 1000;
+                    await new Promise(res => setTimeout(res, delay));
+                    return execute(retryCount + 1);
+                }
+                return "Neural link failure.";
+            }
+        };
+        return await execute();
+    }
+
+    async function generateDebrief() {
+        const textEl = document.getElementById('ai-debrief-text');
+        const loader = document.getElementById('ai-loading-indicator');
+        const btn = document.getElementById('ai-debrief-btn');
+        if (!textEl || !loader || !btn) return;
+        
+        btn.disabled = true;
+        loader.classList.remove('hidden');
+        textEl.innerText = "Analyzing synaptic throughput...";
+
+        const accuracy = gameState.shots > 0 ? Math.round((gameState.hits/gameState.shots)*100) : 0;
+        const prompt = `Analyze this session: Score: ${gameState.score}, Accuracy: ${accuracy}%, Max Combo: ${gameState.maxCombo-1}, Target: ${gameState.targetSkin}. Write a 1-sentence combat evaluation. Keep it under 25 words.`;
+        
+        const debrief = await callGemini(prompt);
+        textEl.innerText = debrief;
+        loader.classList.add('hidden');
+        btn.disabled = false;
+    }
+
+    async function generateCallsign() {
+        const signEl = document.getElementById('ai-callsign');
+        const btn = document.getElementById('ai-callsign-btn');
+        if (!signEl || !btn) return;
+        
+        btn.disabled = true;
+        signEl.innerText = "Processing Ident...";
+        
+        const accuracy = gameState.shots > 0 ? Math.round((gameState.hits/gameState.shots)*100) : 0;
+        const prompt = `Generate a unique two-word futuristic callsign for an archer with ${accuracy}% precision. Output ONLY the callsign.`;
+        
+        const callsign = await callGemini(prompt);
+        signEl.innerText = callsign.replace(/[".]/g, '');
+        btn.disabled = false;
+    }
+
     const COLORS = {
         cyan: '#00f2ff',
         pink: '#ff00c8',
         purple: '#9d00ff',
-        green: '#39ff14',
-        white: '#ffffff'
+        white: '#ffffff',
+        gold: '#FFD700',
+        galagaBlue: '#1e40af',
+        galagaYellow: '#fbbf24',
+        galagaRed: '#ef4444'
     };
 
-    // --- SOUND SYSTEM (Web Audio API) ---
     class AudioManager {
-        constructor() {
-            this.ctx = null;
-            this.masterGain = null;
-            this.isMuted = false;
-        }
-
+        constructor() { this.ctx = null; this.masterGain = null; this.noiseBuffer = null; }
         async init() {
             if (!this.ctx) {
                 this.ctx = new (window.AudioContext || window.webkitAudioContext)();
                 this.masterGain = this.ctx.createGain();
                 this.masterGain.connect(this.ctx.destination);
                 this.masterGain.gain.value = 0.4;
+                this._createNoiseBuffer();
             }
-            if (this.ctx.state === 'suspended') {
-                await this.ctx.resume();
-            }
-            return this.ctx;
+            if (this.ctx.state === 'suspended') await this.ctx.resume();
         }
-
-        play(type, freq = 440, duration = 0.1, volume = 0.2) {
-            if (!this.ctx || this.isMuted) return;
+        _createNoiseBuffer() {
+            const bufferSize = this.ctx.sampleRate * 2;
+            this.noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+            const output = this.noiseBuffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+        }
+        play(type, freq, dur, vol, sweep = false) {
+            if (!this.ctx) return;
             const now = this.ctx.currentTime;
             const osc = this.ctx.createOscillator();
             const g = this.ctx.createGain();
-            
             osc.type = type;
             osc.frequency.setValueAtTime(freq, now);
-            g.gain.setValueAtTime(volume, now);
-            g.gain.exponentialRampToValueAtTime(0.01, now + duration);
-
-            osc.connect(g);
-            g.connect(this.masterGain);
-
-            osc.start();
-            osc.stop(now + duration);
+            if(sweep) osc.frequency.exponentialRampToValueAtTime(sweep, now + dur);
+            g.gain.setValueAtTime(vol, now);
+            g.gain.exponentialRampToValueAtTime(0.01, now + dur);
+            osc.connect(g); g.connect(this.masterGain);
+            osc.start(); osc.stop(now + dur);
         }
-
-        async shoot() {
-            await this.init(); 
-            if (!this.ctx || this.isMuted) return;
+        async wingFlap(isNox = false) {
+            if (!this.ctx || !this.noiseBuffer) return;
             const now = this.ctx.currentTime;
-            
-            const snap = this.ctx.createOscillator();
-            const snapGain = this.ctx.createGain();
-            snap.type = 'square';
-            snap.frequency.setValueAtTime(3200, now);
-            snap.frequency.exponentialRampToValueAtTime(1200, now + 0.03);
-            snapGain.gain.setValueAtTime(0.25, now);
-            snapGain.gain.exponentialRampToValueAtTime(0.01, now + 0.03);
-            snap.connect(snapGain);
-            snapGain.connect(this.masterGain);
-            snap.start();
-            snap.stop(now + 0.03);
-
-            const thump = this.ctx.createOscillator();
-            const thumpGain = this.ctx.createGain();
-            thump.type = 'sawtooth';
-            thump.frequency.setValueAtTime(1600, now);
-            thump.frequency.exponentialRampToValueAtTime(60, now + 0.15);
-            thumpGain.gain.setValueAtTime(0.15, now);
-            thumpGain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-            thump.connect(thumpGain);
-            thumpGain.connect(this.masterGain);
-            thump.start();
-            thump.stop(now + 0.15);
-        }
-
-        async hit(combo) {
-            await this.init();
-            const pitch = 600 + (combo * 100);
-            this.play('sine', pitch, 0.3, 0.2);
-            this.play('triangle', pitch * 1.5, 0.1, 0.1);
-        }
-
-        async birdHit() {
-            await this.init();
-            if (!this.ctx || this.isMuted) return;
-            const now = this.ctx.currentTime;
-            
-            // Refined "Squawk" sound using harmonic oscillators
-            const osc1 = this.ctx.createOscillator();
-            const osc2 = this.ctx.createOscillator();
+            const source = this.ctx.createBufferSource();
+            const filter = this.ctx.createBiquadFilter();
             const g = this.ctx.createGain();
-            
-            osc1.type = 'sawtooth';
-            osc1.frequency.setValueAtTime(1800, now);
-            osc1.frequency.exponentialRampToValueAtTime(800, now + 0.15);
-
-            osc2.type = 'sine';
-            osc2.frequency.setValueAtTime(2200, now);
-            osc2.frequency.exponentialRampToValueAtTime(1200, now + 0.15);
-
-            g.gain.setValueAtTime(0.3, now);
+            source.buffer = this.noiseBuffer;
+            filter.type = isNox ? 'lowpass' : 'bandpass';
+            filter.frequency.setValueAtTime(isNox ? 120 : 500, now);
+            g.gain.setValueAtTime(isNox ? 0.15 : 0.08, now);
             g.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-
-            osc1.connect(g);
-            osc2.connect(g);
-            g.connect(this.masterGain);
-
-            osc1.start(); osc1.stop(now + 0.15);
-            osc2.start(); osc2.stop(now + 0.15);
+            source.connect(filter); filter.connect(g); g.connect(this.masterGain);
+            source.start(); source.stop(now + 0.15);
         }
-
-        async miss() {
+        async shoot() { await this.init(); this.play('square', 2400, 0.06, 0.15, 600); this.play('sawtooth', 120, 0.15, 0.25, 40); }
+        async hit(skin) {
             await this.init();
-            this.play('sawtooth', 120, 0.4, 0.1);
+            switch(skin) {
+                case 'void': this.play('square', 80, 0.4, 0.4, 10); break;
+                case 'bird': this.play('sine', 1600, 0.2, 0.4, 400); break;
+                case 'bat': this.play('sawtooth', 800, 0.25, 0.3, 100); break;
+                default: this.play('sine', 1000, 0.2, 0.3);
+            }
         }
-
-        async click() {
-            await this.init();
-            this.play('sine', 1200, 0.05, 0.05);
-        }
+        async miss() { await this.init(); this.play('sawtooth', 70, 0.5, 0.2, 30); }
     }
 
     const Audio = new AudioManager();
-
-    // --- ENGINE STATE ---
-    let faceLandmarker;
-    let video = document.getElementById('video');
-    let canvas = document.getElementById('game-canvas');
-    let ctx = canvas.getContext('2d');
+    let faceLandmarker, video = document.getElementById('video'), canvas = document.getElementById('game-canvas'), ctx = canvas.getContext('2d');
     
     let gameState = {
-        mode: 'START',
-        score: 0,
-        displayScore: 0,
-        arrows: 0,
-        maxArrows: 10,
-        time: 15,
-        maxTime: 15,
-        targetSkin: 'standard',
-        combo: 1,
-        maxCombo: 1,
-        hits: 0,
-        shots: 0,
-        lastBlink: 0,
-        sensitivity: 0.45,
-        lastTimestamp: 0,
-        shake: 0
+        mode: 'START', score: 0, arrows: 10, maxArrows: 10, time: 15, maxTime: 15,
+        targetSkin: 'standard', combo: 1, maxCombo: 1, hits: 0, shots: 0,
+        lastBlink: 0, lastTimestamp: 0, shake: 0, lastVideoTime: -1, 
+        initialized: false
     };
 
-    let crosshair = { x: 0.5, y: 0.5, targetX: 0.5, targetY: 0.5, active: false, trail: [] };
-    let target = { x: 0.5, y: 0.5, vx: 0, vy: 0, radius: 40, active: false, pulse: 0, spawnTime: 0 };
-    let particles = [];
-    let popups = [];
-
-    const lerp = (a, b, n) => (1 - n) * a + n * b;
+    let crosshair = { x: 0.5, y: 0.5, active: false, trail: [] };
+    let target = { x: 0.5, y: 0.5, vx: 0, vy: 0, active: false, spawnTime: 0, lastFlap: 0, hitTime: 0 };
+    let particles = [], popups = [];
 
     function resize() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
+        if (gameState.mode === 'PLAYING') updateHUD();
     }
 
-    function mapVideoToScreen(x, y) {
-        if (!video.videoWidth) return { x, y };
-        const videoAspect = video.videoWidth / video.videoHeight;
-        const screenAspect = window.innerWidth / window.innerHeight;
-        let mappedX = x;
-        let mappedY = y;
-        if (videoAspect > screenAspect) {
-            const scale = window.innerHeight / video.videoHeight;
-            const scaledWidth = video.videoWidth * scale;
-            const offset = (scaledWidth - window.innerWidth) / 2;
-            mappedX = (x * scaledWidth - offset) / window.innerWidth;
-        } else {
-            const scale = window.innerWidth / video.videoWidth;
-            const scaledHeight = video.videoHeight * scale;
-            const offset = (scaledHeight - window.innerHeight) / 2;
-            mappedY = (y * scaledHeight - offset) / window.innerHeight;
-        }
-        return { x: mappedX, y: mappedY };
-    }
-
-    function createParticle(x, y, color) {
-        for (let i = 0; i < 15; i++) {
+    function createParticles(x, y, color, type = 'square') {
+        const count = type === 'feather' ? 15 : 25;
+        for (let i = 0; i < count; i++) {
             particles.push({
-                x, y,
-                vx: (Math.random() - 0.5) * 15,
-                vy: (Math.random() - 0.5) * 15,
-                life: 1.0,
-                color,
-                size: Math.random() * 5 + 2
+                x, y, vx: (Math.random() - 0.5) * 22, vy: (Math.random() - 0.5) * 22,
+                life: 1.0, color, size: Math.random() * (type === 'feather' ? 14 : 8) + 2,
+                type, rotation: Math.random() * Math.PI * 2, rv: (Math.random() - 0.5) * 0.3
             });
-        }
-    }
-
-    function createPopup(x, y, text, color) {
-        popups.push({ x, y, text, color, life: 1.0, vy: -2 });
-    }
-
-    async function init() {
-        resize();
-        window.addEventListener('resize', resize);
-        try {
-            const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm");
-            faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
-                baseOptions: {
-                    modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
-                    delegate: "GPU"
-                },
-                outputFaceBlendshapes: true,
-                runningMode: "VIDEO",
-                numFaces: 1
-            });
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: 'user', width: 640, height: 480 } 
-            });
-            video.srcObject = stream;
-            video.onloadedmetadata = () => {
-                document.getElementById('start-btn').disabled = false;
-                document.getElementById('start-btn').innerText = "CONNECT NEURAL LINK";
-                requestAnimationFrame(gameLoop);
-            };
-        } catch (e) {
-            console.error(e);
-            alert("Camera access is required for AR gameplay.");
         }
     }
 
     function spawnTarget() {
-        target.x = 0.15 + Math.random() * 0.7;
-        target.y = 0.2 + Math.random() * 0.5;
-        const baseSpeed = 0.00035; 
-        const difficulty = 1 + (gameState.score / 80); 
-        target.vx = (Math.random() - 0.5) * baseSpeed * difficulty;
-        target.vy = (Math.random() - 0.5) * baseSpeed * difficulty;
+        target.x = 0.2 + Math.random() * 0.6;
+        target.y = 0.25 + Math.random() * 0.5;
+        const speedMultiplier = 1 + (gameState.score / 2000);
+        const speed = 0.0006 * speedMultiplier;
+        target.vx = (Math.random() - 0.5) * speed;
+        target.vy = (Math.random() - 0.5) * speed;
         target.active = true;
         target.spawnTime = performance.now();
-        target.pulse = 0;
+        target.hitTime = 0;
     }
 
     function fire() {
@@ -498,152 +439,120 @@
         gameState.arrows--;
         Audio.shoot();
         const aspect = window.innerWidth / window.innerHeight;
-        const dx = (crosshair.x - target.x) * aspect;
-        const dy = (crosshair.y - target.y);
+        const dx = (crosshair.x - target.x) * aspect, dy = (crosshair.y - target.y);
         const dist = Math.sqrt(dx * dx + dy * dy);
-        const hitLimit = 0.08;
-        if (dist < hitLimit) {
+        if (dist < 0.11 && target.active) {
             gameState.hits++;
-            const points = 10 * gameState.combo;
-            gameState.score += points;
+            const pts = 10 * gameState.combo;
+            gameState.score += pts;
+            if (gameState.combo > 1) popups.push({ x: target.x, y: target.y - 0.1, text: `COMBO X${gameState.combo}`, color: COLORS.pink, life: 1.0, vy: -4, size: 48 });
             gameState.combo++;
             if(gameState.combo > gameState.maxCombo) gameState.maxCombo = gameState.combo;
-            
-            if (gameState.targetSkin === 'bird') {
-                Audio.birdHit();
-                createParticle(target.x, target.y, '#FFD700');
-            } else {
-                Audio.hit(gameState.combo);
-                createParticle(target.x, target.y, COLORS.cyan);
-            }
-            createPopup(target.x, target.y, `+${points}`, COLORS.cyan);
-            gameState.shake = 10;
+            target.hitTime = performance.now();
+            Audio.hit(gameState.targetSkin);
+            const pColor = gameState.targetSkin === 'void' ? COLORS.galagaBlue : (gameState.targetSkin === 'bird' ? COLORS.gold : COLORS.cyan);
+            createParticles(target.x, target.y, pColor, gameState.targetSkin === 'bird' ? 'feather' : 'square');
+            popups.push({ x: target.x, y: target.y, text: `+${pts}`, color: COLORS.cyan, life: 1.0, vy: -2.5, size: 36 });
+            gameState.shake = 30;
+            target.active = false;
             spawnTarget();
         } else {
-            gameState.combo = 1;
-            Audio.miss();
-            createParticle(crosshair.x, crosshair.y, COLORS.pink);
-            createPopup(crosshair.x, crosshair.y, `MISS`, COLORS.pink);
+            gameState.combo = 1; Audio.miss();
+            popups.push({ x: crosshair.x, y: crosshair.y, text: `MISS`, color: COLORS.pink, life: 1.0, vy: -2, size: 32 });
+            createParticles(crosshair.x, crosshair.y, COLORS.pink);
         }
         updateHUD();
-        if (gameState.arrows === 0) setTimeout(endGame, 800);
+        if (gameState.arrows === 0) setTimeout(endGame, 1000);
     }
 
     function updateHUD() {
         const container = document.getElementById('arrow-display');
+        if (!container) return;
         container.innerHTML = '';
+        const h = window.innerHeight;
         for(let i=0; i<gameState.maxArrows; i++) {
             const active = i < gameState.arrows;
-            container.innerHTML += `
-                <div class="w-2 h-8 rounded-full transition-all duration-300 ${active ? 'bg-cyan-400 shadow-[0_0_10px_cyan]' : 'bg-white/10'}" 
-                     style="transform: skewX(-15deg) ${!active ? 'scale(0.8)' : ''}"></div>
-            `;
+            const height = clamp(h * 0.035, 25, 55);
+            container.innerHTML += `<div class="w-2.5 rounded-full transition-all duration-500 ${active ? 'bg-cyan-400 shadow-[0_0_15px_rgba(0,242,255,0.7)]' : 'bg-white/5'}" style="height: ${height}px; transform: skewX(-15deg) ${!active ? 'scale(0.8)' : ''}"></div>`;
         }
     }
 
-    async function startSequence() {
-        await Audio.init();
-        document.getElementById('start-screen').classList.replace('visible', 'hidden');
-        document.getElementById('countdown').classList.remove('hidden');
-        let count = 3;
-        const cdText = document.getElementById('countdown-text');
-        const timer = setInterval(async () => {
-            count--;
-            await Audio.click();
-            if(count === 0) {
-                cdText.innerText = "GO!";
-                cdText.classList.add('neon-text-pink');
-            } else if (count < 0) {
-                clearInterval(timer);
-                document.getElementById('countdown').classList.add('hidden');
-                startGame();
-            } else {
-                cdText.innerText = count;
-            }
-        }, 800);
-    }
-
-    function startGame() {
-        gameState.mode = 'PLAYING';
-        gameState.score = 0;
-        gameState.displayScore = 0;
-        gameState.hits = 0;
-        gameState.shots = 0;
-        gameState.combo = 1;
-        gameState.maxCombo = 1;
-        gameState.maxTime = parseInt(document.querySelector('#time-selector .active').dataset.val);
-        gameState.time = gameState.maxTime;
-        gameState.maxArrows = parseInt(document.querySelector('#arrow-selector .active').dataset.val);
-        gameState.arrows = gameState.maxArrows;
-        gameState.targetSkin = document.querySelector('#skin-selector .active').dataset.val;
-        
-        document.getElementById('hud').style.opacity = '1';
-        spawnTarget();
-        updateHUD();
-    }
-
-    function endGame() {
-        if (gameState.mode === 'END') return;
-        gameState.mode = 'END';
-        document.getElementById('hud').style.opacity = '0';
-        document.getElementById('end-screen').classList.replace('hidden', 'visible');
-        document.getElementById('final-score-text').innerText = gameState.score.toString().padStart(4, '0');
-        const accuracy = gameState.shots > 0 ? Math.round((gameState.hits / gameState.shots) * 100) : 0;
-        document.getElementById('accuracy-stat').innerText = accuracy + "%";
-        document.getElementById('combo-stat').innerText = "x" + gameState.maxCombo;
-        const rank = gameState.score > 200 ? 'GHOST' : gameState.score > 100 ? 'ELITE' : 'RECRUIT';
-        document.getElementById('rank-tag').innerText = rank;
+    async function init() {
+        resize();
+        window.addEventListener('resize', resize);
+        try {
+            const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm");
+            faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
+                baseOptions: { modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`, delegate: "GPU" },
+                outputFaceBlendshapes: true, runningMode: "VIDEO", numFaces: 1
+            });
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } } });
+            video.srcObject = stream;
+            video.onloadedmetadata = () => {
+                const startBtn = document.getElementById('start-btn');
+                if (startBtn) { startBtn.disabled = false; startBtn.innerText = "INITIALIZE NEURAL CORE"; }
+                gameState.initialized = true;
+                requestAnimationFrame(gameLoop);
+            };
+        } catch (e) { 
+            const startBtn = document.getElementById('start-btn');
+            if (startBtn) startBtn.innerText = "CAMERA ERROR";
+        }
     }
 
     function gameLoop(now) {
-        const delta = now - gameState.lastTimestamp;
+        if (!gameState.initialized) return;
+        const delta = Math.min(now - gameState.lastTimestamp, 100);
         gameState.lastTimestamp = now;
-        if (faceLandmarker && video.currentTime !== gameState.lastVideoTime) {
+
+        if (faceLandmarker && video.readyState >= 2 && video.currentTime !== gameState.lastVideoTime) {
             gameState.lastVideoTime = video.currentTime;
-            const result = faceLandmarker.detectForVideo(video, now);
-            if (result.faceLandmarks && result.faceLandmarks[0]) {
-                const nose = result.faceLandmarks[0][168];
-                const mapped = mapVideoToScreen(nose.x, nose.y);
-                crosshair.targetX = mapped.x;
-                crosshair.targetY = mapped.y;
-                crosshair.active = true;
-                crosshair.x = lerp(crosshair.x, crosshair.targetX, 0.4);
-                crosshair.y = lerp(crosshair.y, crosshair.targetY, 0.4);
-                crosshair.trail.push({x: crosshair.x, y: crosshair.y, life: 1.0});
-                if(crosshair.trail.length > 10) crosshair.trail.shift();
-                if (result.faceBlendshapes && result.faceBlendshapes[0]) {
-                    const shapes = result.faceBlendshapes[0].categories;
-                    const bL = shapes.find(s => s.categoryName === 'eyeBlinkLeft').score;
-                    const bR = shapes.find(s => s.categoryName === 'eyeBlinkRight').score;
-                    const blinkScore = (bL + bR) / 2;
-                    document.getElementById('blink-progress').style.width = (blinkScore * 100) + "%";
-                    if (blinkScore > gameState.sensitivity && now - gameState.lastBlink > 400) {
-                        fire();
-                        gameState.lastBlink = now;
+            try {
+                const result = faceLandmarker.detectForVideo(video, now);
+                if (result && result.faceLandmarks && result.faceLandmarks[0]) {
+                    const nose = result.faceLandmarks[0][168];
+                    const vA = video.videoWidth / video.videoHeight, sA = window.innerWidth / window.innerHeight;
+                    let mx = nose.x, my = nose.y;
+                    if (vA > sA) {
+                        const scale = window.innerHeight / video.videoHeight;
+                        const sw = video.videoWidth * scale;
+                        mx = (nose.x * sw - (sw - window.innerWidth)/2) / window.innerWidth;
+                    } else {
+                        const scale = window.innerWidth / video.videoWidth;
+                        const sh = video.videoHeight * scale;
+                        my = (nose.y * sh - (sh - window.innerHeight)/2) / window.innerHeight;
                     }
+                    crosshair.x = lerp(crosshair.x, mx, 0.45); crosshair.y = lerp(crosshair.y, my, 0.45);
+                    crosshair.active = true;
+                    crosshair.trail.push({x: crosshair.x, y: crosshair.y, life: 1.0});
+                    if(crosshair.trail.length > 12) crosshair.trail.shift();
+                    document.getElementById('tracking-lost-warning').style.opacity = '0';
+                    if (result.faceBlendshapes && result.faceBlendshapes[0]) {
+                        const blink = (result.faceBlendshapes[0].categories.find(s=>s.categoryName==='eyeBlinkLeft').score + result.faceBlendshapes[0].categories.find(s=>s.categoryName==='eyeBlinkRight').score) / 2;
+                        document.getElementById('blink-progress').style.width = (blink * 100) + "%";
+                        if (blink > 0.48 && now - gameState.lastBlink > 450) { fire(); gameState.lastBlink = now; }
+                    }
+                } else {
+                    crosshair.active = false;
+                    if (gameState.mode === 'PLAYING') document.getElementById('tracking-lost-warning').style.opacity = '1';
                 }
-            } else {
-                crosshair.active = false;
-            }
+            } catch (e) {}
         }
+
         if (gameState.mode === 'PLAYING') {
             gameState.time -= delta / 1000;
             if (gameState.time <= 0) endGame();
             if (target.active) {
-                target.x += target.vx * delta;
-                target.y += target.vy * delta;
+                target.x += target.vx * delta; target.y += target.vy * delta;
                 if (target.x < 0.1) { target.x = 0.1; target.vx *= -1; }
                 if (target.x > 0.9) { target.x = 0.9; target.vx *= -1; }
                 if (target.y < 0.2) { target.y = 0.2; target.vy *= -1; }
                 if (target.y > 0.8) { target.y = 0.8; target.vy *= -1; }
             }
-            document.getElementById('timer-text').innerText = Math.ceil(gameState.time);
-            const offset = 219.9 * (1 - (gameState.time / gameState.maxTime));
-            document.getElementById('timer-progress').style.strokeDashoffset = offset;
-            gameState.displayScore = lerp(gameState.displayScore, gameState.score, 0.1);
-            document.getElementById('score-text').innerText = Math.round(gameState.displayScore).toString().padStart(4, '0');
-            const comboProgress = Math.min(100, (gameState.combo - 1) * 20);
-            document.getElementById('combo-fill').style.width = comboProgress + "%";
+            document.getElementById('timer-text').innerText = Math.ceil(Math.max(0, gameState.time));
+            document.getElementById('timer-progress').style.strokeDashoffset = 251.3 * (1 - (gameState.time/gameState.maxTime));
+            document.getElementById('score-text').innerText = Math.round(gameState.score).toString().padStart(4, '0');
+            document.getElementById('combo-fill').style.width = Math.min(100, (gameState.combo-1)*15) + "%";
             document.getElementById('critical-vignette').style.opacity = gameState.time < 5 ? '1' : '0';
         }
         render(now);
@@ -652,168 +561,157 @@
 
     function render(now) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const w = canvas.width;
-        const h = canvas.height;
-        if (gameState.shake > 0) {
-            ctx.save();
-            ctx.translate((Math.random()-0.5)*gameState.shake, (Math.random()-0.5)*gameState.shake);
-            gameState.shake *= 0.9;
-        }
+        const w = canvas.width, h = canvas.height;
+        if (gameState.shake > 0) { ctx.save(); ctx.translate((Math.random()-0.5)*gameState.shake, (Math.random()-0.5)*gameState.shake); gameState.shake *= 0.88; }
         crosshair.trail.forEach((p, i) => {
-            p.life -= 0.05;
-            ctx.strokeStyle = `rgba(0, 242, 255, ${i/10})`;
-            ctx.beginPath();
-            ctx.arc(p.x * w, p.y * h, 10 + (i*2), 0, Math.PI * 2);
-            ctx.stroke();
+            p.life -= 0.04;
+            const alpha = (i / crosshair.trail.length) * 0.4;
+            ctx.strokeStyle = `rgba(0, 242, 255, ${alpha})`;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.arc(p.x * w, p.y * h, 8 + (i*4), 0, Math.PI * 2); ctx.stroke();
         });
+
         if (target.active && gameState.mode === 'PLAYING') {
-            const tx = target.x * w;
-            const ty = target.y * h;
-            const entryScale = Math.min(1, (now - target.spawnTime) / 300);
+            const isHit = target.hitTime > 0 && now - target.hitTime < 150;
+            const facing = target.vx >= 0 ? 1 : -1;
+            const entryScale = clamp((now - target.spawnTime) / 400, 0, 1);
             ctx.save();
-            ctx.translate(tx, ty);
+            ctx.translate(target.x * w, target.y * h);
             ctx.scale(entryScale, entryScale);
-
-            if (gameState.targetSkin === 'bird') {
-                const flapPhase = (now / 150) % (Math.PI * 2);
-                const wingYScale = Math.sin(flapPhase);
-                
-                // Back Wing (Upper)
-                ctx.save();
-                ctx.translate(2, -8);
-                ctx.rotate(-0.3 + (-wingYScale * 0.5));
-                ctx.fillStyle = "#FFA000";
-                ctx.beginPath();
-                ctx.ellipse(0, -10, 22, 10, 0, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-
-                // Tail Feathers
-                ctx.fillStyle = "#FFD700";
-                ctx.beginPath();
-                ctx.moveTo(-25, 0);
-                ctx.lineTo(-45, -15);
-                ctx.lineTo(-45, 15);
-                ctx.closePath();
-                ctx.fill();
-
-                // Body
-                const grad = ctx.createRadialGradient(0, 0, 5, 0, 0, 30);
-                grad.addColorStop(0, "#FFEA00");
-                grad.addColorStop(1, "#FFC107");
-                ctx.fillStyle = grad;
-                ctx.beginPath();
-                ctx.ellipse(0, 0, 32, 22, 0, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Front Wing (Lower)
-                ctx.save();
-                ctx.translate(2, 8);
-                ctx.rotate(0.3 + (wingYScale * 0.5));
-                ctx.fillStyle = "#FFB300";
-                ctx.beginPath();
-                ctx.ellipse(0, 10, 24, 12, 0, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-
-                // Head
-                ctx.fillStyle = "#FFD54F";
-                ctx.beginPath();
-                ctx.arc(24, -8, 16, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Eye
-                ctx.fillStyle = "white";
-                ctx.beginPath(); ctx.arc(30, -12, 5, 0, Math.PI * 2); ctx.fill();
-                ctx.fillStyle = "black";
-                ctx.beginPath(); ctx.arc(32, -12, 2, 0, Math.PI * 2); ctx.fill();
-
-                // Beak
-                ctx.fillStyle = "#FF3D00";
-                ctx.beginPath();
-                ctx.moveTo(38, -10);
-                ctx.lineTo(50, -6);
-                ctx.lineTo(38, 0);
-                ctx.closePath();
-                ctx.fill();
-                
+            if (gameState.targetSkin === 'void') {
+                const strobe = Math.floor(now / 80) % 2 === 0;
+                ctx.scale(facing, 1);
+                if (isHit) { ctx.scale(1.5, 1.5); }
+                ctx.fillStyle = strobe ? COLORS.galagaYellow : COLORS.galagaRed;
+                const p = Math.sin(now/40) * 12;
+                ctx.fillRect(-35, -40+p, 12, 18); ctx.fillRect(23, -40+p, 12, 18);
+                ctx.fillStyle = COLORS.galagaYellow; ctx.fillRect(-22, -30, 44, 15);
+                ctx.fillStyle = "white"; ctx.fillRect(-10, -25, 6, 6); ctx.fillRect(4, -25, 6, 6);
+                ctx.fillStyle = COLORS.galagaBlue; ctx.fillRect(-30, -15, 60, 25);
+                ctx.fillStyle = COLORS.galagaRed; ctx.beginPath(); ctx.moveTo(-30, 10); ctx.lineTo(30, 10); ctx.lineTo(20, 30); ctx.lineTo(-20, 30); ctx.fill();
+                ctx.shadowBlur = 20; ctx.shadowColor = COLORS.galagaBlue;
+                ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.strokeRect(-30,-15,60,25);
+            } else if (gameState.targetSkin === 'bird' || gameState.targetSkin === 'bat') {
+                const isB = gameState.targetSkin === 'bat';
+                const phase = (now % (isB ? 300 : 480)) / (isB ? 300 : 480);
+                const wingA = phase < 0.25 ? lerp(-0.7, 1.4, phase/0.25) : lerp(1.4, -0.7, (phase-0.25)/0.75);
+                if (phase < 0.1 && now - target.lastFlap > 150) { Audio.wingFlap(isB); target.lastFlap = now; }
+                ctx.save(); ctx.scale(facing, 1); ctx.rotate(Math.abs(target.vx)*550);
+                const bob = Math.sin(now/120)*12; ctx.translate(0, bob);
+                if (isHit) { ctx.scale(1.7, 0.5); ctx.fillStyle = "white"; }
+                const drawW = (s) => {
+                    ctx.save(); ctx.scale(s, 1); ctx.rotate(wingA);
+                    ctx.fillStyle = isB ? (s === 1 ? "#3e277a" : "#2a1b4a") : (s === 1 ? "#FFC107" : "#FFA000");
+                    if (isB) { ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(55,-25); ctx.lineTo(50,5); ctx.lineTo(35,35); ctx.lineTo(10,15); ctx.fill(); }
+                    else { ctx.beginPath(); ctx.ellipse(22, -12, 32, 14, 0, 0, Math.PI*2); ctx.fill(); }
+                    ctx.restore();
+                };
+                drawW(-1); ctx.fillStyle = isB ? "#150d26" : "#FFD54F";
+                ctx.beginPath(); ctx.moveTo(-28,0); ctx.lineTo(-55,-15); ctx.lineTo(-55,15); ctx.fill(); 
+                const g = ctx.createRadialGradient(0,0,5,0,0,42);
+                g.addColorStop(0, isB ? "#4A148C" : "#FFF176"); g.addColorStop(1, isB ? "#1A237E" : "#FBC02D");
+                ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(0,0, 38, 24, 0, 0, Math.PI*2); ctx.fill(); 
+                ctx.save(); ctx.translate(30, -14);
+                ctx.fillStyle = isB ? "#1A237E" : "#FFF59D"; ctx.beginPath(); ctx.arc(0,0, 20, 0, Math.PI*2); ctx.fill();
+                if (isB) { ctx.fillStyle = "#1A237E"; ctx.beginPath(); ctx.moveTo(-12,-16);ctx.lineTo(-6,-32);ctx.lineTo(6,-16);ctx.fill(); ctx.beginPath();ctx.moveTo(6,-16);ctx.lineTo(12,-32);ctx.lineTo(18,-16);ctx.fill(); }
+                const angle = Math.atan2(crosshair.y - target.y, (crosshair.x - target.x)*facing);
+                ctx.translate(Math.cos(angle)*6, Math.sin(angle)*6);
+                ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(7,-3,8,0,Math.PI*2); ctx.fill();
+                ctx.fillStyle = isB ? COLORS.pink : "black"; ctx.beginPath(); ctx.arc(9,-3,5,0,Math.PI*2); ctx.fill();
+                ctx.restore(); drawW(1); ctx.restore();
             } else {
-                const pulse = Math.sin(now / 200) * 5;
-                ctx.strokeStyle = COLORS.cyan;
-                ctx.lineWidth = 4;
-                ctx.setLineDash([15, 15]);
-                ctx.beginPath();
-                ctx.arc(0, 0, target.radius + pulse, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.setLineDash([]);
-                ctx.fillStyle = COLORS.pink;
-                ctx.shadowBlur = 20;
-                ctx.shadowColor = COLORS.pink;
-                ctx.beginPath();
-                ctx.arc(0, 0, 15, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.shadowBlur = 0;
+                const pulse = Math.sin(now / 150) * 10;
+                ctx.strokeStyle = COLORS.cyan; ctx.lineWidth = 6; ctx.setLineDash([25, 20]);
+                ctx.beginPath(); ctx.arc(0,0, 50+pulse,0,Math.PI*2); ctx.stroke();
+                ctx.setLineDash([]); ctx.fillStyle = isHit ? "white" : COLORS.pink;
+                ctx.shadowBlur = isHit ? 60 : 30; ctx.shadowColor = ctx.fillStyle;
+                ctx.beginPath(); ctx.arc(0,0, 22, 0, Math.PI*2); ctx.fill();
             }
             ctx.restore();
         }
-        for (let i = particles.length - 1; i >= 0; i--) {
-            const p = particles[i];
-            p.x += p.vx / w;
-            p.y += p.vy / h;
-            p.life -= 0.02;
-            if (p.life <= 0) { particles.splice(i, 1); continue; }
-            ctx.fillStyle = p.color;
-            ctx.globalAlpha = p.life;
-            ctx.fillRect(p.x * w, p.y * h, p.size, p.size);
-        }
-        for (let i = popups.length - 1; i >= 0; i--) {
-            const p = popups[i];
-            p.y += p.vy / h;
-            p.life -= 0.01;
-            if (p.life <= 0) { popups.splice(i, 1); continue; }
-            ctx.font = `italic 900 ${24 * p.life + 10}px Russo One`;
-            ctx.fillStyle = p.color;
-            ctx.globalAlpha = p.life;
-            ctx.textAlign = 'center';
-            ctx.fillText(p.text, p.x * w, p.y * h);
-        }
+
+        particles.forEach((p, i) => {
+            p.x += p.vx / w; p.y += p.vy / h; p.life -= 0.018;
+            if (p.life <= 0) particles.splice(i, 1);
+            ctx.save(); ctx.translate(p.x * w, p.y * h); ctx.globalAlpha = p.life; ctx.fillStyle = p.color;
+            if (p.type === 'feather') { p.vy += 0.25; ctx.rotate(p.rotation += p.rv); ctx.beginPath(); ctx.ellipse(0,0,p.size,p.size/3,0,0,Math.PI*2); ctx.fill(); }
+            else { ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size); }
+            ctx.restore();
+        });
+
+        popups.forEach((p, i) => {
+            p.y += p.vy/h; p.life -= 0.015;
+            if(p.life <= 0) popups.splice(i,1);
+            ctx.font=`italic 900 ${p.size}px Russo One`; ctx.fillStyle=p.color; ctx.globalAlpha=p.life; ctx.textAlign='center'; 
+            ctx.save(); ctx.translate(p.x*w, p.y*h); ctx.scale(-1, 1); 
+            const s = 1 + (1-p.life)*0.5; ctx.scale(s, s); ctx.fillText(p.text, 0, 0); ctx.restore();
+        });
+
         if (crosshair.active) {
-            const cx = crosshair.x * w;
-            const cy = crosshair.y * h;
-            ctx.globalAlpha = 1;
-            ctx.strokeStyle = COLORS.cyan;
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.arc(cx, cy, 30, 0, Math.PI * 2);
-            ctx.moveTo(cx - 40, cy); ctx.lineTo(cx - 15, cy);
-            ctx.moveTo(cx + 40, cy); ctx.lineTo(cx + 15, cy);
-            ctx.moveTo(cx, cy - 40); ctx.lineTo(cx, cy - 15);
-            ctx.moveTo(cx, cy + 40); ctx.lineTo(cx, cy + 15);
-            ctx.stroke();
-            ctx.fillStyle = COLORS.cyan;
-            ctx.beginPath();
-            ctx.arc(cx, cy, 4, 0, Math.PI * 2);
-            ctx.fill();
+            const cx = crosshair.x*w, cy = crosshair.y*h;
+            ctx.strokeStyle = COLORS.cyan; ctx.lineWidth = 3.5;
+            ctx.beginPath(); ctx.arc(cx, cy, 32, 0, Math.PI * 2); ctx.stroke();
+            const jitter = Math.sin(now/20)*2; const ext = 45 + jitter;
+            ctx.beginPath(); ctx.moveTo(cx-ext, cy); ctx.lineTo(cx-15, cy); ctx.moveTo(cx+ext, cy); ctx.lineTo(cx+15, cy);
+            ctx.moveTo(cx, cy-ext); ctx.lineTo(cx, cy-15); ctx.moveTo(cx, cy+ext); ctx.lineTo(cx, cy+15); ctx.stroke();
+            ctx.fillStyle = COLORS.cyan; ctx.beginPath(); ctx.arc(cx, cy, 5.5, 0, Math.PI * 2); ctx.fill();
         }
         if (gameState.shake > 0) ctx.restore();
         ctx.globalAlpha = 1;
     }
 
-    document.querySelectorAll('#time-selector button, #arrow-selector button, #skin-selector button').forEach(btn => {
-        btn.onclick = async () => {
-            await Audio.click();
-            btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active', 'neon-border-cyan'));
-            btn.classList.add('active', 'neon-border-cyan');
+    async function startSequence() {
+        await Audio.init();
+        document.getElementById('start-screen').classList.replace('visible', 'hidden');
+        document.getElementById('end-screen').classList.replace('visible', 'hidden');
+        document.getElementById('countdown').classList.remove('hidden');
+        let count = 3;
+        const cdText = document.getElementById('countdown-text');
+        cdText.innerText = count;
+        const timer = setInterval(() => {
+            count--;
+            if(count === 0) { cdText.innerText = "GO!"; cdText.style.color = COLORS.pink; }
+            else if (count < 0) { clearInterval(timer); document.getElementById('countdown').classList.add('hidden'); startGame(); }
+            else { cdText.innerText = count; }
+        }, 900);
+    }
+
+    function startGame() {
+        gameState.mode = 'PLAYING';
+        gameState.score = 0; gameState.hits = 0; gameState.shots = 0; gameState.combo = 1; gameState.maxCombo = 1;
+        gameState.maxTime = parseInt(document.querySelector('#time-selector .active').dataset.val);
+        gameState.time = gameState.maxTime;
+        gameState.maxArrows = parseInt(document.querySelector('#arrow-selector .active').dataset.val);
+        gameState.arrows = gameState.maxArrows;
+        gameState.targetSkin = document.querySelector('#skin-selector .active').dataset.val;
+        document.getElementById('hud').style.opacity = '1';
+        spawnTarget(); updateHUD();
+    }
+
+    function endGame() {
+        gameState.mode = 'END';
+        document.getElementById('hud').style.opacity = '0';
+        document.getElementById('end-screen').classList.replace('hidden', 'visible');
+        document.getElementById('final-score-text').innerText = Math.round(gameState.score).toString().padStart(4, '0');
+        document.getElementById('accuracy-stat').innerText = (gameState.shots > 0 ? Math.round((gameState.hits/gameState.shots)*100) : 0) + "%";
+        document.getElementById('combo-stat').innerText = "x" + (gameState.maxCombo - 1);
+        const r = gameState.score > 400 ? 'Ghost' : (gameState.score > 200 ? 'Elite' : 'Recruit');
+        document.getElementById('rank-tag').innerText = r;
+        generateCallsign(); generateDebrief();
+    }
+
+    document.querySelectorAll('.selector-btn').forEach(btn => {
+        btn.onclick = () => {
+            btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
         };
     });
 
     document.getElementById('start-btn').onclick = startSequence;
     document.getElementById('restart-btn').onclick = startSequence;
-    document.getElementById('menu-btn').onclick = async () => {
-        await Audio.click();
-        document.getElementById('end-screen').classList.replace('visible', 'hidden');
-        document.getElementById('start-screen').classList.replace('hidden', 'visible');
-    };
+    document.getElementById('ai-debrief-btn').onclick = generateDebrief;
+    document.getElementById('ai-callsign-btn').onclick = generateCallsign;
+    document.getElementById('menu-btn').onclick = () => { location.reload(); };
 
     init();
 </script>
